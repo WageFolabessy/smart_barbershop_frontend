@@ -52,14 +52,43 @@ export default function RegisterPage() {
         try {
             await api.get('/sanctum/csrf-cookie');
 
-            const response = await api.post<LoginResponse>('/api/auth/register', values);
-            const { user, token } = response.data;
+            const response = await api.post<any>('/api/auth/register', values);
+            console.log('Register response:', response.data);
 
-            Cookies.set('auth_token', token, { expires: 7 });
-            Cookies.set('user_role', user.role, { expires: 7 });
+            // Handle potential nested data structure (Laravel Resource)
+            let data = response.data;
+            if (data.data) {
+                data = data.data;
+            }
 
-            login(user, token);
-            router.push('/booking');
+            let { user, token } = data;
+
+            // If register doesn't return user/token, try to login
+            if (!user || !token) {
+                console.log('Register successful but no token returned. Attempting login...');
+                const loginResponse = await api.post<any>('/api/auth/login', {
+                    email: values.email,
+                    password: values.password,
+                });
+
+                let loginData = loginResponse.data;
+                if (loginData.data) {
+                    loginData = loginData.data;
+                }
+
+                user = loginData.user;
+                token = loginData.token;
+            }
+
+            if (user && token) {
+                Cookies.set('auth_token', token, { expires: 7 });
+                Cookies.set('user_role', user.role, { expires: 7 });
+
+                login(user, token);
+                router.push('/booking');
+            } else {
+                throw new Error('Gagal masuk otomatis setelah mendaftar. Silakan masuk secara manual.');
+            }
         } catch (err: any) {
             console.error(err);
             setError(err.response?.data?.message || 'Terjadi kesalahan saat mendaftar.');

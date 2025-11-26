@@ -43,8 +43,15 @@ export default function LoginPage() {
         try {
             await api.get('/sanctum/csrf-cookie');
 
-            const response = await api.post<LoginResponse>('/api/auth/login', values);
-            const { user, token } = response.data;
+            const response = await api.post<any>('/api/auth/login', values);
+
+            // Handle potential nested data structure (Laravel Resource)
+            let data = response.data;
+            if (data.data) {
+                data = data.data;
+            }
+
+            const { user, token } = data;
 
             // Set cookies for middleware
             Cookies.set('auth_token', token, { expires: 7 });

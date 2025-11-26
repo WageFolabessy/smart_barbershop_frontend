@@ -39,22 +39,27 @@ export default function BookingPage() {
     const { data: barbers, isLoading: isLoadingBarbers } = useQuery({
         queryKey: ['barbers'],
         queryFn: async () => {
-            // Assuming there's an endpoint to get barbers or users filtered by role
-            // If not, we might need to filter client side if /users returns all
-            // For now, let's try /api/users?role=barber if supported, or just mock/assume /api/barbers exists or similar
-            // Based on openapi, there isn't a clear "get barbers" endpoint, but /bookings/available-barbers exists.
-            // Let's try to get all users and filter, or use a known endpoint.
-            // I'll assume /api/users works and I can filter, or I'll use a hardcoded list if it fails.
-            // Wait, openapi shows /bookings/available-barbers. I can use that with a dummy date to get list?
-            // Or maybe /api/barbers is a common convention not fully documented or I missed it.
-            // Let's try /api/users?role=barber
+            // Use available-barbers endpoint with current time to get list of barbers
+            // This is a workaround since there is no public /users endpoint
+            const now = new Date().toISOString();
             try {
-                const res = await api.get<{ data: User[] }>('/api/users?role=barber');
-                return res.data.data;
+                const res = await api.get<{ available_barbers: { id: number | string, name: string }[] }>('/api/bookings/available-barbers', {
+                    params: {
+                        datetime: now
+                    }
+                });
+
+                // Map to User type (filling missing fields with placeholders)
+                return res.data.available_barbers.map(b => ({
+                    id: Number(b.id),
+                    name: b.name,
+                    email: '', // Not used in UI
+                    role: 'barber' as const,
+                    created_at: '',
+                    updated_at: ''
+                }));
             } catch (e) {
-                // Fallback or handle error. 
-                // Since I can't verify the API, I'll assume there's a way.
-                // If this fails, I'll use an empty list.
+                console.error('Failed to fetch barbers:', e);
                 return [];
             }
         },
