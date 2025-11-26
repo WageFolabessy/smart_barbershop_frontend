@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "O Barbershop - Premium Cuts",
+  title: "Smart Barbershop - Premium Cuts",
   description: "Smart Barbershop Platform",
 };
 

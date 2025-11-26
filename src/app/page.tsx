@@ -16,7 +16,7 @@ export default function Home() {
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
-          O Barbershop
+          Smart Barbershop
         </h1>
 
         <p className="text-xl text-muted-foreground">
@@ -26,12 +26,12 @@ export default function Home() {
         </p>
 
         <div className="flex gap-4 justify-center pt-8">
-          <Link href="/auth/login">
+          <Link href="/login">
             <Button size="lg" className="text-lg px-8 py-6 font-bold shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all">
               Masuk Sekarang
             </Button>
           </Link>
-          <Link href="/auth/register">
+          <Link href="/register">
             <Button variant="outline" size="lg" className="text-lg px-8 py-6 font-bold border-primary/50 hover:bg-primary/10">
               Daftar Akun
             </Button>
@@ -40,7 +40,7 @@ export default function Home() {
       </div>
 
       <div className="absolute bottom-8 text-sm text-muted-foreground/50">
-        &copy; 2025 O Barbershop. All rights reserved.
+        &copy; 2025 Smart Barbershop. All rights reserved.
       </div>
     </div>
   );

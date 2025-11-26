@@ -37,7 +37,7 @@ export default function CustomerNav() {
             <div className="container flex h-16 items-center justify-between px-4">
                 <div className="flex items-center gap-2">
                     <Link href="/booking" className="text-xl font-bold text-primary tracking-tight">
-                        O Barbershop
+                        Smart Barbershop
                     </Link>
                 </div>
 

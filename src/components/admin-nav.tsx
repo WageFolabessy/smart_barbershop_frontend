@@ -37,7 +37,7 @@ export default function AdminNav() {
             <div className="container flex h-16 items-center justify-between px-4">
                 <div className="flex items-center gap-2">
                     <Link href="/admin/dashboard" className="text-xl font-bold text-primary tracking-tight">
-                        O Barbershop <span className="text-xs text-muted-foreground font-normal">Admin</span>
+                        Smart Barbershop <span className="text-xs text-muted-foreground font-normal">Admin</span>
                     </Link>
                 </div>
 

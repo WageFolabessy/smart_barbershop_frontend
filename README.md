@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# O Barbershop Frontend
 
-## Getting Started
+Frontend aplikasi Smart Barbershop yang dibangun dengan Next.js 14, Tailwind CSS, dan Shadcn UI.
+Aplikasi ini mendukung 3 role pengguna: Customer, Barber, dan Admin.
 
-First, run the development server:
+## Fitur Utama
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 🎨 Desain & UI
+- **Dark Luxury Theme**: Estetika premium dengan warna hitam, emas, dan perak.
+- **Responsif**: Tampilan optimal di desktop dan mobile.
+- **Bahasa Indonesia**: Seluruh antarmuka menggunakan Bahasa Indonesia yang profesional.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 👥 Role Pengguna
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### 1. Customer (Pelanggan)
+- **Smart Booking**: Pilih layanan, kapster, dan waktu dengan mudah.
+- **Highlight Jam**: Penanda "Jam Sepi" (Hemat) dan "Jam Sibuk" (Premium).
+- **Riwayat**: Lihat status booking (Menunggu, Selesai, Dibatalkan).
+- **Hair Journey**: Galeri transformasi gaya rambut (Before/After).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### 2. Barber (Kapster)
+- **Dashboard Antrian**: Lihat jadwal hari ini.
+- **Upload Hasil**: Upload foto Before/After dan catatan perawatan.
 
-## Learn More
+#### 3. Admin
+- **Dashboard Overview**: Statistik pendapatan dan booking.
+- **Manajemen Layanan**: CRUD layanan cukur.
+- **Manajemen Pengguna**: Kelola data pengguna.
 
-To learn more about Next.js, take a look at the following resources:
+## Cara Menjalankan
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Setup Environment**
+   Buat file `.env.local`:
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:8000
+   ```
 
-## Deploy on Vercel
+3. **Jalankan Development Server**
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. **Buka Aplikasi**
+   Buka [http://localhost:3000](http://localhost:3000) di browser.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Struktur Project
+
+- `src/app`: Halaman-halaman aplikasi (App Router).
+- `src/components`: Komponen UI (Shadcn) dan komponen khusus.
+- `src/lib`: Utilitas (Axios, Formatters).
+- `src/store`: State management (Zustand).
+- `src/types`: Definisi tipe TypeScript.
+
+## Teknologi
+
+- **Framework**: Next.js 14
+- **Styling**: Tailwind CSS v4
+- **UI Components**: Shadcn UI (Radix Primitives)
+- **State Management**: Zustand & TanStack Query
+- **Icons**: Lucide React
+- **Forms**: React Hook Form + Zod
+- **Charts**: Recharts
