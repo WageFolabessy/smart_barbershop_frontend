@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/axios';
 import Cookies from 'js-cookie';
+import { AUTH_COOKIE_NAMES, ROUTES } from '@/lib/constants';
 
 export default function CustomerNav() {
     const pathname = usePathname();
@@ -17,13 +18,13 @@ export default function CustomerNav() {
     const handleLogout = async () => {
         try {
             await api.post('/api/auth/logout');
-        } catch (error) {
-            console.error('Logout failed', error);
+        } catch {
+            // Ignore logout errors, clean up local state anyway
         }
-        Cookies.remove('auth_token');
-        Cookies.remove('user_role');
+        Cookies.remove(AUTH_COOKIE_NAMES.TOKEN);
+        Cookies.remove(AUTH_COOKIE_NAMES.USER_ROLE);
         logout();
-        router.push('/auth/login');
+        router.push(ROUTES.LOGIN);
     };
 
     const navItems = [

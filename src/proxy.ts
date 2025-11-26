@@ -7,7 +7,7 @@ export default function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Public routes that don't need auth
-    if (pathname.startsWith('/auth') || pathname === '/') {
+    if (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname === '/') {
         if (token) {
             // If already logged in, redirect to appropriate dashboard
             if (role === 'admin') return NextResponse.redirect(new URL('/admin/dashboard', request.url));
@@ -19,7 +19,7 @@ export default function proxy(request: NextRequest) {
 
     // Protected routes
     if (!token) {
-        return NextResponse.redirect(new URL('/auth/login', request.url));
+        return NextResponse.redirect(new URL('/login', request.url));
     }
 
     // Role-based protection
@@ -41,6 +41,8 @@ export const config = {
         '/booking/:path*',
         '/riwayat/:path*',
         '/galeri/:path*',
-        '/auth/:path*',
+        '/login',
+        '/register',
+        '/',
     ],
 };

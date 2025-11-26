@@ -4,19 +4,19 @@ import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Clock, Scissors, User as UserIcon, CheckCircle2, Loader2 } from 'lucide-react';
+import { Clock, Scissors, User as UserIcon, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
-import { Service, User, TimeSlot, Booking } from '@/types/api';
+import { Service, User, TimeSlot } from '@/types/api';
 
 export default function BookingPage() {
     const router = useRouter();
@@ -59,7 +59,7 @@ export default function BookingPage() {
                     updated_at: ''
                 }));
             } catch (e) {
-                console.error('Failed to fetch barbers:', e);
+                // Return empty array on error - UI will show empty state
                 return [];
             }
         },

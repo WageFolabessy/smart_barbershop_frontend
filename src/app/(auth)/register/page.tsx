@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import Cookies from 'js-cookie';
+import { AUTH_COOKIE_NAMES, COOKIE_OPTIONS, ROUTES } from '@/lib/constants';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import api from '@/lib/axios';
 import { useAuthStore } from '@/store/useAuthStore';
-import { LoginResponse } from '@/types/api';
 
 const registerSchema = z.object({
     name: z.string().min(2, { message: "Nama minimal 2 karakter" }),
@@ -53,7 +53,6 @@ export default function RegisterPage() {
             await api.get('/sanctum/csrf-cookie');
 
             const response = await api.post<any>('/api/auth/register', values);
-            console.log('Register response:', response.data);
 
             // Handle potential nested data structure (Laravel Resource)
             let data = response.data;
@@ -65,7 +64,6 @@ export default function RegisterPage() {
 
             // If register doesn't return user/token, try to login
             if (!user || !token) {
-                console.log('Register successful but no token returned. Attempting login...');
                 const loginResponse = await api.post<any>('/api/auth/login', {
                     email: values.email,
                     password: values.password,
@@ -81,17 +79,17 @@ export default function RegisterPage() {
             }
 
             if (user && token) {
-                Cookies.set('auth_token', token, { expires: 7 });
-                Cookies.set('user_role', user.role, { expires: 7 });
+                Cookies.set(AUTH_COOKIE_NAMES.TOKEN, token, COOKIE_OPTIONS);
+                Cookies.set(AUTH_COOKIE_NAMES.USER_ROLE, user.role, COOKIE_OPTIONS);
 
                 login(user, token);
-                router.push('/booking');
+                router.push(ROUTES.BOOKING);
             } else {
                 throw new Error('Gagal masuk otomatis setelah mendaftar. Silakan masuk secara manual.');
             }
         } catch (err: any) {
-            console.error(err);
-            setError(err.response?.data?.message || 'Terjadi kesalahan saat mendaftar.');
+            const errorMessage = err.response?.data?.message || 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.';
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }

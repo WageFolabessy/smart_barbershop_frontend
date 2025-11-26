@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import Cookies from 'js-cookie';
+import { AUTH_COOKIE_NAMES, COOKIE_OPTIONS, ROUTES } from '@/lib/constants';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import api from '@/lib/axios';
 import { useAuthStore } from '@/store/useAuthStore';
-import { LoginResponse } from '@/types/api';
 
 const loginSchema = z.object({
     email: z.string().email({ message: "Email tidak valid" }),
@@ -54,21 +54,21 @@ export default function LoginPage() {
             const { user, token } = data;
 
             // Set cookies for middleware
-            Cookies.set('auth_token', token, { expires: 7 });
-            Cookies.set('user_role', user.role, { expires: 7 });
+            Cookies.set(AUTH_COOKIE_NAMES.TOKEN, token, COOKIE_OPTIONS);
+            Cookies.set(AUTH_COOKIE_NAMES.USER_ROLE, user.role, COOKIE_OPTIONS);
 
             login(user, token);
 
             if (user.role === 'admin') {
-                router.push('/admin/dashboard');
+                router.push(ROUTES.ADMIN.DASHBOARD);
             } else if (user.role === 'barber') {
-                router.push('/barber/dashboard');
+                router.push(ROUTES.BARBER.DASHBOARD);
             } else {
-                router.push('/booking');
+                router.push(ROUTES.BOOKING);
             }
         } catch (err: any) {
-            console.error(err);
-            setError(err.response?.data?.message || 'Terjadi kesalahan saat masuk. Periksa kembali kredensial Anda.');
+            const errorMessage = err.response?.data?.message || 'Terjadi kesalahan saat masuk. Periksa kembali kredensial Anda.';
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }

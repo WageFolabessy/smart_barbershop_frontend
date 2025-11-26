@@ -1,15 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Calendar, LogOut, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/axios';
 import Cookies from 'js-cookie';
+import { AUTH_COOKIE_NAMES, ROUTES } from '@/lib/constants';
 
 export default function BarberNav() {
-    const pathname = usePathname();
     const router = useRouter();
     const logout = useAuthStore((state) => state.logout);
     const user = useAuthStore((state) => state.user);
@@ -17,13 +17,13 @@ export default function BarberNav() {
     const handleLogout = async () => {
         try {
             await api.post('/api/auth/logout');
-        } catch (error) {
-            console.error('Logout failed', error);
+        } catch {
+            // Ignore logout errors, clean up local state anyway
         }
-        Cookies.remove('auth_token');
-        Cookies.remove('user_role');
+        Cookies.remove(AUTH_COOKIE_NAMES.TOKEN);
+        Cookies.remove(AUTH_COOKIE_NAMES.USER_ROLE);
         logout();
-        router.push('/auth/login');
+        router.push(ROUTES.LOGIN);
     };
 
     return (

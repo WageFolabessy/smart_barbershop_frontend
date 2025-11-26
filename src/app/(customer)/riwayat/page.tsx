@@ -3,9 +3,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Calendar, Clock, MapPin, Scissors, User } from 'lucide-react';
+import { Calendar, Clock, User } from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
@@ -13,7 +13,7 @@ import api from '@/lib/axios';
 import { Booking } from '@/types/api';
 
 export default function HistoryPage() {
-    const { data: bookings, isLoading } = useQuery({
+    const { data: bookings } = useQuery({
         queryKey: ['bookings'],
         queryFn: async () => {
             const res = await api.get<{ data: Booking[] }>('/api/bookings');
