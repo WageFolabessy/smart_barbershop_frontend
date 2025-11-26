@@ -20,11 +20,13 @@ export interface Service {
 
 export interface TimeSlot {
     id: number;
-    time: string; // HH:mm
-    is_peak_hour: boolean;
-    multiplier: number;
-    created_at: string;
-    updated_at: string;
+    day_of_week: string;
+    start_time: string;
+    end_time: string;
+    price_multiplier: number;
+    label: string | null;
+    is_active: boolean;
+    is_peak_hour?: boolean; // Frontend computed field
 }
 
 export interface Booking {

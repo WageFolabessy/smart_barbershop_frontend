@@ -141,3 +141,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Marquee animation for scrolling text */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 8s linear infinite;
+}
+
+.animate-marquee::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 100%;
+  padding-left: 1em;
+}

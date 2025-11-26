@@ -17,9 +17,11 @@ import { Separator } from '@/components/ui/separator';
 import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Service, User, TimeSlot } from '@/types/api';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function BookingPage() {
     const router = useRouter();
+    const user = useAuthStore((state) => state.user);
     const [step, setStep] = useState(1);
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [selectedBarber, setSelectedBarber] = useState<User | null>(null);
@@ -81,9 +83,10 @@ export default function BookingPage() {
 
             // Combine date and time
             const dateStr = format(date, 'yyyy-MM-dd');
-            const dateTime = `${dateStr} ${selectedTimeSlot.time}:00`;
+            const dateTime = `${dateStr} ${selectedTimeSlot.start_time}:00`;
 
             await api.post('/api/bookings', {
+                customer_id: user?.id,
                 service_id: selectedService.id,
                 barber_id: selectedBarber.id,
                 time_slot_id: selectedTimeSlot.id,
@@ -237,14 +240,26 @@ export default function BookingPage() {
                                             )}
                                             onClick={() => setSelectedTimeSlot(slot)}
                                         >
-                                            <span className="font-bold">{slot.time.substring(0, 5)}</span>
-                                            {slot.is_peak_hour ? (
-                                                <Badge variant="secondary" className="text-[10px] px-1 h-4 bg-primary/20 text-primary hover:bg-primary/30">
-                                                    Premium
-                                                </Badge>
-                                            ) : (
-                                                <Badge variant="secondary" className="text-[10px] px-1 h-4 bg-green-500/10 text-green-500 hover:bg-green-500/20">
-                                                    Hemat
+                                            <span className="font-bold">{slot.start_time?.substring(0, 5) || 'N/A'}</span>
+                                            {slot.label && (
+                                                <Badge
+                                                    variant="secondary"
+                                                    className={cn(
+                                                        "text-[10px] px-1.5 h-auto py-0.5 w-[90px] overflow-hidden relative",
+                                                        slot.is_peak_hour
+                                                            ? "bg-primary/20 text-primary hover:bg-primary/30"
+                                                            : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                                                    )}
+                                                    title={slot.label}
+                                                >
+                                                    <span
+                                                        className={cn(
+                                                            "inline-block whitespace-nowrap",
+                                                            slot.label.length > 12 && "animate-marquee"
+                                                        )}
+                                                    >
+                                                        {slot.label}
+                                                    </span>
                                                 </Badge>
                                             )}
                                         </Button>
@@ -275,7 +290,7 @@ export default function BookingPage() {
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Waktu</span>
                                 <span className="font-bold">
-                                    {date && format(date, 'eeee, d MMMM yyyy', { locale: id })}, {selectedTimeSlot?.time.substring(0, 5)}
+                                    {date && format(date, 'eeee, d MMMM yyyy', { locale: id })}, {selectedTimeSlot?.start_time?.substring(0, 5)}
                                 </span>
                             </div>
                             <Separator />
@@ -283,7 +298,7 @@ export default function BookingPage() {
                                 <span className="font-bold">Total Estimasi</span>
                                 <span className="font-bold text-primary">
                                     {selectedService && selectedTimeSlot &&
-                                        formatCurrency(selectedService.base_price * selectedTimeSlot.multiplier)
+                                        formatCurrency(selectedService.base_price * selectedTimeSlot.price_multiplier)
                                     }
                                 </span>
                             </div>
