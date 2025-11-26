@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, LogOut, Scissors, User, Users } from 'lucide-react';
+import { BarChart3, LogOut, Scissors, User, Users, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/axios';
@@ -30,6 +30,7 @@ export default function AdminNav() {
     const navItems = [
         { href: '/admin/dashboard', label: 'Overview', icon: BarChart3 },
         { href: '/admin/services', label: 'Layanan', icon: Scissors },
+        { href: '/admin/time-slots', label: 'Slot Waktu', icon: Clock },
         { href: '/admin/users', label: 'Pengguna', icon: Users },
     ];
 

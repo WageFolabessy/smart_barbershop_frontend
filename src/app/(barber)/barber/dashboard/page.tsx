@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Loader2, Camera } from 'lucide-react';
+import { Loader2, Camera, Star, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -15,22 +15,33 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import api from '@/lib/axios';
-import { Booking } from '@/types/api';
+import { Booking, Review } from '@/types/api';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function BarberDashboard() {
     const queryClient = useQueryClient();
+    const user = useAuthStore((state) => state.user);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [isUploadOpen, setIsUploadOpen] = useState(false);
 
     // Fetch Bookings
-    const { data: bookings, isLoading } = useQuery({
+    const { data: bookings, isLoading: isLoadingBookings } = useQuery({
         queryKey: ['barber-bookings'],
         queryFn: async () => {
             const res = await api.get<{ data: Booking[] }>('/api/bookings');
-            // Filter for today or upcoming? 
-            // Ideally backend filters by logged in barber.
             return res.data.data;
         },
+    });
+
+    // Fetch Reviews
+    const { data: reviews, isLoading: isLoadingReviews } = useQuery({
+        queryKey: ['barber-reviews', user?.id],
+        queryFn: async () => {
+            if (!user?.id) return [];
+            const res = await api.get<{ data: Review[] }>(`/api/barbers/${user.id}/reviews`);
+            return res.data.data;
+        },
+        enabled: !!user?.id,
     });
 
     // Upload Mutation
@@ -46,7 +57,6 @@ export default function BarberDashboard() {
             toast.success('Hasil cukur berhasil diupload!');
             setIsUploadOpen(false);
             queryClient.invalidateQueries({ queryKey: ['barber-bookings'] });
-            // Maybe update booking status to completed if not already?
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || 'Gagal mengupload hasil.');
@@ -60,7 +70,7 @@ export default function BarberDashboard() {
         const form = e.currentTarget;
         const formData = new FormData(form);
         formData.append('booking_id', selectedBooking.id.toString());
-        formData.append('customer_id', selectedBooking.customer.id.toString()); // Assuming API needs this or infers from booking
+        formData.append('customer_id', selectedBooking.customer.id.toString());
 
         uploadMutation.mutate(formData);
     };
@@ -81,13 +91,13 @@ export default function BarberDashboard() {
                 <p className="text-muted-foreground">Antrian dan jadwal Anda hari ini.</p>
             </div>
 
-            <div className="grid gap-6">
-                <Card>
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card className="md:col-span-2">
                     <CardHeader>
                         <CardTitle>Antrian Hari Ini ({format(today, 'eeee, d MMMM yyyy', { locale: id })})</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? (
+                        {isLoadingBookings ? (
                             <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                         ) : todayBookings.length === 0 ? (
                             <div className="text-center py-12 text-muted-foreground">
@@ -162,6 +172,43 @@ export default function BarberDashboard() {
                                                 </form>
                                             </DialogContent>
                                         </Dialog>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card className="md:col-span-2">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <MessageSquare className="h-5 w-5" />
+                            Ulasan Terbaru
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {isLoadingReviews ? (
+                            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+                        ) : !reviews || reviews.length === 0 ? (
+                            <div className="text-center py-12 text-muted-foreground">
+                                Belum ada ulasan dari pelanggan.
+                            </div>
+                        ) : (
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {reviews.map((review) => (
+                                    <div key={review.id} className="p-4 border rounded-lg bg-card/50 space-y-2">
+                                        <div className="flex justify-between items-start">
+                                            <div className="font-bold">{review.customer.name}</div>
+                                            <div className="flex text-yellow-500">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'fill-current' : 'text-muted-foreground/20'}`} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground italic">"{review.comment || 'Tidak ada komentar'}"</p>
+                                        <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
+                                            {format(new Date(review.created_at), 'd MMMM yyyy', { locale: id })}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
