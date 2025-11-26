@@ -114,7 +114,7 @@ export default function BookingPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            <div className="space-y-2">
+            <div className="space-y-2 text-center md:text-left">
                 <h1 className="text-3xl font-bold tracking-tight text-primary">Buat Janji Temu</h1>
                 <p className="text-muted-foreground">Pilih layanan dan kapster favorit Anda.</p>
             </div>
@@ -214,12 +214,12 @@ export default function BookingPage() {
                         <Clock className="h-5 w-5 text-primary" /> Pilih Waktu
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="flex justify-center">
+                        <div className="flex justify-center py-6 md:py-8">
                             <Calendar
                                 mode="single"
                                 selected={date}
                                 onSelect={setDate}
-                                className="rounded-md border bg-card"
+                                className="rounded-md border bg-card scale-125 origin-center"
                                 disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                 locale={id}
                             />

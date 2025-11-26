@@ -35,40 +35,50 @@ export default function CustomerNav() {
 
     return (
         <nav className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-            <div className="container flex h-16 items-center justify-between px-4">
-                <div className="flex items-center gap-2">
-                    <Link href="/booking" className="text-xl font-bold text-primary tracking-tight">
-                        Smart Barbershop
-                    </Link>
-                </div>
-
-                {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-6">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive ? 'text-primary' : 'text-muted-foreground'
-                                    }`}
-                            >
-                                <Icon className="h-4 w-4" />
-                                {item.label}
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                        <User className="h-4 w-4" />
-                        <span>{user?.name}</span>
+            <div className="w-full px-4 md:px-8">
+                <div className="relative flex h-16 items-center justify-between">
+                    {/* Logo - Left */}
+                    <div className="flex items-center gap-2">
+                        <Link href="/booking" className="text-lg md:text-xl font-bold text-primary tracking-tight">
+                            Smart Barbershop
+                        </Link>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={handleLogout} title="Keluar">
-                        <LogOut className="h-5 w-5" />
-                    </Button>
+
+                    {/* Desktop Nav - Center */}
+                    <div className="hidden md:flex items-center gap-6 absolute left-1/2 transform -translate-x-1/2">
+                        {navItems.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive ? 'text-primary' : 'text-muted-foreground'
+                                        }`}
+                                >
+                                    <Icon className="h-4 w-4" />
+                                    {item.label}
+                                </Link>
+                            );
+                        })}
+                    </div>
+
+                    {/* User Info & Logout - Right */}
+                    <div className="flex items-center gap-2 md:gap-3 ml-auto">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <User className="h-4 w-4" />
+                            <span className="max-w-[80px] sm:max-w-[120px] md:max-w-none truncate">{user?.name}</span>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleLogout}
+                            className="text-red-500 hover:text-red-600 hover:bg-red-500/10 gap-1 md:gap-2 px-2 md:px-3"
+                        >
+                            <LogOut className="h-4 w-4" />
+                            <span>Keluar</span>
+                        </Button>
+                    </div>
                 </div>
             </div>
 
