@@ -116,7 +116,7 @@ export default function ServicesPage() {
                             <DialogFooter>
                                 <Button type="submit" disabled={saveMutation.isPending}>
                                     {saveMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Simpan
+                                    {saveMutation.isPending ? 'Menyimpan...' : (editingService ? 'Perbarui' : 'Tambah')}
                                 </Button>
                             </DialogFooter>
                         </form>

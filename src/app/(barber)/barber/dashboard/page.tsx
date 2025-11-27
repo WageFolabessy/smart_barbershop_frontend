@@ -12,13 +12,13 @@ import {
 
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Loader2, Camera, Star, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Loader2, Camera, Star, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -255,7 +255,7 @@ export default function BarberDashboard() {
                                                         <DialogFooter>
                                                             <Button type="submit" disabled={uploadMutation.isPending}>
                                                                 {uploadMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                                Simpan
+                                                                {uploadMutation.isPending ? 'Menyimpan...' : 'Simpan'}
                                                             </Button>
                                                         </DialogFooter>
                                                     </form>
@@ -287,7 +287,14 @@ export default function BarberDashboard() {
                                         <Card key={record.id} className="overflow-hidden">
                                             <div className="aspect-video relative bg-muted">
                                                 {record.photos?.after ? (
-                                                    <img src={record.photos.after} alt="After" className="object-cover w-full h-full" />
+                                                    <Image
+                                                        src={record.photos.after}
+                                                        alt="Hair cut result - After"
+                                                        fill
+                                                        className="object-cover"
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                        loading="lazy"
+                                                    />
                                                 ) : (
                                                     <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
                                                 )}
@@ -295,13 +302,13 @@ export default function BarberDashboard() {
                                                     <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => {
                                                         setEditingRecord(record);
                                                         setIsEditOpen(true);
-                                                    }}>
+                                                    }} aria-label="Edit hair record">
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
                                                     <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => {
                                                         setDeletingRecord(record);
                                                         setIsDeleteOpen(true);
-                                                    }}>
+                                                    }} aria-label="Delete hair record">
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
@@ -404,7 +411,7 @@ export default function BarberDashboard() {
                         <DialogFooter>
                             <Button type="submit" disabled={editRecordMutation.isPending}>
                                 {editRecordMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Simpan Perubahan
+                                {editRecordMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
                             </Button>
                         </DialogFooter>
                     </form>

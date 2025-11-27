@@ -1,16 +1,11 @@
 import { QueryClient } from '@tanstack/react-query';
-import { QUERY_CONFIG } from './constants';
 
-/**
- * Centralized React Query client configuration
- * Provides default options for all queries and mutations
- */
 export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: QUERY_CONFIG.STALE_TIME,
-            gcTime: QUERY_CONFIG.CACHE_TIME,
-            retry: QUERY_CONFIG.RETRY_ATTEMPTS,
+            staleTime: 5 * 60 * 1000, // 5 minutes
+            gcTime: 10 * 60 * 1000, // 10 minutes
+            retry: 1, // Retry once on failure
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
         },

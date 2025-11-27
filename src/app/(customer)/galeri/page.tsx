@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { ImageIcon, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -52,10 +53,13 @@ export default function GalleryPage() {
                                     <Dialog>
                                         <DialogTrigger asChild>
                                             <div className="aspect-square relative rounded-md overflow-hidden cursor-pointer bg-muted">
-                                                <img
+                                                <Image
                                                     src={record.photos.before}
-                                                    alt="Before"
-                                                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                                                    alt="Hair cut before transformation"
+                                                    fill
+                                                    className="object-cover hover:scale-105 transition-transform duration-300"
+                                                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                                                    loading="lazy"
                                                 />
                                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-1 text-center">
                                                     Before
@@ -63,7 +67,7 @@ export default function GalleryPage() {
                                             </div>
                                         </DialogTrigger>
                                         <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black">
-                                            <img src={record.photos.before} alt="Before Full" className="w-full h-auto" />
+                                            <Image src={record.photos.before} alt="Before transformation - full view" width={1200} height={1200} className="w-full h-auto" />
                                         </DialogContent>
                                     </Dialog>
                                 )}
@@ -71,10 +75,13 @@ export default function GalleryPage() {
                                     <Dialog>
                                         <DialogTrigger asChild>
                                             <div className="aspect-square relative rounded-md overflow-hidden cursor-pointer bg-muted">
-                                                <img
+                                                <Image
                                                     src={record.photos.after}
-                                                    alt="After"
-                                                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                                                    alt="Hair cut after transformation"
+                                                    fill
+                                                    className="object-cover hover:scale-105 transition-transform duration-300"
+                                                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                                                    loading="lazy"
                                                 />
                                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-1 text-center">
                                                     After
@@ -82,7 +89,7 @@ export default function GalleryPage() {
                                             </div>
                                         </DialogTrigger>
                                         <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black">
-                                            <img src={record.photos.after} alt="After Full" className="w-full h-auto" />
+                                            <Image src={record.photos.after} alt="After transformation - full view" width={1200} height={1200} className="w-full h-auto" />
                                         </DialogContent>
                                     </Dialog>
                                 )}

@@ -219,7 +219,7 @@ export default function UsersPage() {
         user.role.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const isPending = createUserMutation.isPending || updateUserMutation.isPending;
+
 
     return (
         <div className="space-y-6">
@@ -290,7 +290,7 @@ export default function UsersPage() {
                                             <TableCell>{user.phone || '-'}</TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(user)}>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(user)} aria-label="Edit user">
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
                                                     <Button
@@ -413,9 +413,9 @@ export default function UsersPage() {
                                 />
                             </div>
                             <DialogFooter>
-                                <Button type="submit" disabled={isPending}>
-                                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {editingUser ? 'Simpan Perubahan' : 'Buat Pengguna'}
+                                <Button type="submit" disabled={createUserMutation.isPending || updateUserMutation.isPending}>
+                                    {(createUserMutation.isPending || updateUserMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {(createUserMutation.isPending || updateUserMutation.isPending) ? 'Menyimpan...' : (editingUser ? 'Perbarui' : 'Buat Pengguna')}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -435,14 +435,14 @@ export default function UsersPage() {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Batal</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={() => deletingUser && deleteUserMutation.mutate(deletingUser.id)}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                deletingUser && deleteUserMutation.mutate(deletingUser.id);
+                            }}
                             className="bg-red-500 hover:bg-red-600"
                         >
-                            {deleteUserMutation.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                'Hapus'
-                            )}
+                            {deleteUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {deleteUserMutation.isPending ? 'Menghapus...' : 'Hapus'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

@@ -288,247 +288,244 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
     return (
         <Card className="overflow-hidden border-l-4 border-l-primary">
             <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row justify-between gap-4">
-                    <div className="space-y-3">
+                <div className="space-y-4">
+                    <div className="flex items-center flex-wrap gap-2">
+                        <Badge variant="outline" className={statusColor}>
+                            {statusLabel}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                            ID: #{booking.id}
+                        </span>
+                    </div>
+                    <h3 className="text-xl font-bold">{booking.service.name}</h3>
+                    <div className="flex flex-col gap-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={statusColor}>
-                                {statusLabel}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                                ID: #{booking.id}
-                            </span>
+                            <Calendar className="h-4 w-4 flex-shrink-0" />
+                            <span>{format(new Date(booking.booking_datetime), 'eeee, d MMMM yyyy', { locale: id })}</span>
                         </div>
-                        <h3 className="text-xl font-bold">{booking.service.name}</h3>
-                        <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                {format(new Date(booking.booking_datetime), 'eeee, d MMMM yyyy', { locale: id })}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4" />
-                                {format(new Date(booking.booking_datetime), 'HH:mm', { locale: id })}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                {booking.barber.name}
-                            </div>
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 flex-shrink-0" />
+                            <span>{format(new Date(booking.booking_datetime), 'HH:mm', { locale: id })}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 flex-shrink-0" />
+                            <span>{booking.barber.name}</span>
                         </div>
                     </div>
-                    <div className="flex flex-col justify-between items-end gap-2">
-                        <div className="text-xl font-bold text-primary">
-                            {formatCurrency(booking.pricing.final_price)}
-                        </div>
+                    <div className="text-2xl font-bold text-primary">
+                        {formatCurrency(booking.pricing.final_price)}
+                    </div>
 
-                        {/* Action Buttons for Pending/Confirmed */}
-                        {canReschedule && (
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" className="gap-2" onClick={handleReschedule}>
-                                    <Edit className="h-4 w-4" />
-                                    Reschedule
-                                </Button>
-                                <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="sm" className="gap-2">
-                                            Batalkan
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Batalkan Booking?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat dibatalkan.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Tidak</AlertDialogCancel>
-                                            <AlertDialogAction
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    cancelMutation.mutate();
-                                                }}
-                                                className="bg-red-500 hover:bg-red-600"
-                                            >
-                                                {cancelMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ya, Batalkan'}
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        )}
-
-                        {booking.status === 'completed' && (
-                            <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="gap-2">
-                                        <Star className="h-4 w-4" /> Beri Ulasan
+                    {/* Action Buttons for Pending/Confirmed */}
+                    {canReschedule && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                            <Button variant="outline" size="sm" className="gap-2" onClick={handleReschedule}>
+                                <Edit className="h-4 w-4" />
+                                Reschedule
+                            </Button>
+                            <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm">
+                                        Batalkan
                                     </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Beri Ulasan Layanan</DialogTitle>
-                                        <DialogDescription>
-                                            Bagaimana pengalaman cukur Anda dengan {booking.barber.name}?
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <Form {...form}>
-                                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="rating"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Rating</FormLabel>
-                                                        <FormControl>
-                                                            <div className="flex gap-2">
-                                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                                    <button
-                                                                        key={star}
-                                                                        type="button"
-                                                                        onClick={() => field.onChange(star)}
-                                                                        className={`focus:outline-none transition-colors ${star <= field.value ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'
-                                                                            }`}
-                                                                    >
-                                                                        <Star className="h-8 w-8" fill={star <= field.value ? "currentColor" : "none"} />
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="comment"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Komentar (Opsional)</FormLabel>
-                                                        <FormControl>
-                                                            <Textarea
-                                                                placeholder="Ceritakan pengalaman Anda..."
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <DialogFooter>
-                                                <Button type="submit" disabled={reviewMutation.isPending}>
-                                                    {reviewMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                    Kirim Ulasan
-                                                </Button>
-                                            </DialogFooter>
-                                        </form>
-                                    </Form>
-                                </DialogContent>
-                            </Dialog>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Batalkan Booking?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat dibatalkan.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Tidak</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                cancelMutation.mutate();
+                                            }}
+                                            className="bg-red-500 hover:bg-red-600"
+                                        >
+                                            {cancelMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ya, Batalkan'}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    )}
+
+                    {booking.status === 'completed' && (
+                        <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="gap-2">
+                                    <Star className="h-4 w-4" /> Beri Ulasan
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Beri Ulasan Layanan</DialogTitle>
+                                    <DialogDescription>
+                                        Bagaimana pengalaman cukur Anda dengan {booking.barber.name}?
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="rating"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Rating</FormLabel>
+                                                    <FormControl>
+                                                        <div className="flex gap-2">
+                                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                                <button
+                                                                    key={star}
+                                                                    type="button"
+                                                                    onClick={() => field.onChange(star)}
+                                                                    className={`focus:outline-none transition-colors ${star <= field.value ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'
+                                                                        }`}
+                                                                >
+                                                                    <Star className="h-8 w-8" fill={star <= field.value ? "currentColor" : "none"} />
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="comment"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Komentar (Opsional)</FormLabel>
+                                                    <FormControl>
+                                                        <Textarea
+                                                            placeholder="Ceritakan pengalaman Anda..."
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <DialogFooter>
+                                            <Button type="submit" disabled={reviewMutation.isPending}>
+                                                {reviewMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                Kirim Ulasan
+                                            </Button>
+                                        </DialogFooter>
+                                    </form>
+                                </Form>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                </div>
+            </div>
+
+            {/* Reschedule Dialog */}
+            <Dialog open={isRescheduleOpen} onOpenChange={setIsRescheduleOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Reschedule Booking</DialogTitle>
+                        <DialogDescription>
+                            Ubah detail booking Anda. Kami akan mengecek ketersediaan sebelum menyimpan perubahan.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        {/* Service Selector */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Layanan</label>
+                            <Select value={rescheduleService?.id.toString()} onValueChange={(val) => {
+                                const service = services?.find(s => s.id.toString() === val);
+                                setRescheduleService(service || null);
+                            }}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih layanan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {services?.map((service) => (
+                                        <SelectItem key={service.id} value={service.id.toString()}>
+                                            {service.name} - {formatCurrency(service.base_price)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Barber Selector */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Kapster</label>
+                            <Select value={rescheduleBarber?.id.toString()} onValueChange={(val) => {
+                                const barber = barbers?.find(b => b.id.toString() === val);
+                                setRescheduleBarber(barber || null);
+                            }}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih kapster" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {barbers?.map((barber) => (
+                                        <SelectItem key={barber.id} value={barber.id.toString()}>
+                                            {barber.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Date Picker */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Tanggal</label>
+                            <Calendar
+                                mode="single"
+                                selected={rescheduleDate}
+                                onSelect={setRescheduleDate}
+                                disabled={(date) => isPast(startOfDay(date)) && !isSameDay(date, new Date())}
+                                className="rounded-md border"
+                            />
+                        </div>
+
+                        {/* Time Slot Selector */}
+                        {rescheduleDate && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Pilih Waktu</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {timeSlots?.map((slot) => (
+                                        <button
+                                            key={slot.id}
+                                            type="button"
+                                            onClick={() => setRescheduleTimeSlot(slot)}
+                                            className={cn(
+                                                "p-3 border rounded-lg text-center transition-colors",
+                                                rescheduleTimeSlot?.id === slot.id
+                                                    ? "bg-primary text-primary-foreground border-primary"
+                                                    : "hover:bg-accent hover:text-accent-foreground"
+                                            )}
+                                        >
+                                            <div className="text-sm font-medium">{slot.start_time}</div>
+                                            <div className="text-xs opacity-70">{slot.end_time}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         )}
                     </div>
-                </div>
-
-                {/* Reschedule Dialog */}
-                <Dialog open={isRescheduleOpen} onOpenChange={setIsRescheduleOpen}>
-                    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>Reschedule Booking</DialogTitle>
-                            <DialogDescription>
-                                Ubah detail booking Anda. Kami akan mengecek ketersediaan sebelum menyimpan perubahan.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            {/* Service Selector */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Layanan</label>
-                                <Select value={rescheduleService?.id.toString()} onValueChange={(val) => {
-                                    const service = services?.find(s => s.id.toString() === val);
-                                    setRescheduleService(service || null);
-                                }}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Pilih layanan" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {services?.map((service) => (
-                                            <SelectItem key={service.id} value={service.id.toString()}>
-                                                {service.name} - {formatCurrency(service.base_price)}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Barber Selector */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Kapster</label>
-                                <Select value={rescheduleBarber?.id.toString()} onValueChange={(val) => {
-                                    const barber = barbers?.find(b => b.id.toString() === val);
-                                    setRescheduleBarber(barber || null);
-                                }}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Pilih kapster" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {barbers?.map((barber) => (
-                                            <SelectItem key={barber.id} value={barber.id.toString()}>
-                                                {barber.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Date Picker */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Tanggal</label>
-                                <Calendar
-                                    mode="single"
-                                    selected={rescheduleDate}
-                                    onSelect={setRescheduleDate}
-                                    disabled={(date) => isPast(startOfDay(date)) && !isSameDay(date, new Date())}
-                                    className="rounded-md border"
-                                />
-                            </div>
-
-                            {/* Time Slot Selector */}
-                            {rescheduleDate && (
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Pilih Waktu</label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {timeSlots?.map((slot) => (
-                                            <button
-                                                key={slot.id}
-                                                type="button"
-                                                onClick={() => setRescheduleTimeSlot(slot)}
-                                                className={cn(
-                                                    "p-3 border rounded-lg text-center transition-colors",
-                                                    rescheduleTimeSlot?.id === slot.id
-                                                        ? "bg-primary text-primary-foreground border-primary"
-                                                        : "hover:bg-accent hover:text-accent-foreground"
-                                                )}
-                                            >
-                                                <div className="text-sm font-medium">{slot.start_time}</div>
-                                                <div className="text-xs opacity-70">{slot.end_time}</div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsRescheduleOpen(false)}>
-                                Batal
-                            </Button>
-                            <Button
-                                onClick={() => rescheduleMutation.mutate()}
-                                disabled={!rescheduleService || !rescheduleBarber || !rescheduleDate || !rescheduleTimeSlot || rescheduleMutation.isPending}
-                            >
-                                {rescheduleMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Simpan Perubahan
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </CardContent>
-        </Card>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsRescheduleOpen(false)}>
+                            Batal
+                        </Button>
+                        <Button
+                            onClick={() => rescheduleMutation.mutate()}
+                            disabled={!rescheduleService || !rescheduleBarber || !rescheduleDate || !rescheduleTimeSlot || rescheduleMutation.isPending}
+                        >
+                            {rescheduleMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Simpan Perubahan
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </CardContent>
+        </Card >
     );
 }

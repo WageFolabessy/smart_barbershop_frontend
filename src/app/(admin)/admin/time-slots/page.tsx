@@ -312,7 +312,7 @@ export default function TimeSlotsPage() {
                                 <DialogFooter>
                                     <Button type="submit" disabled={isPending}>
                                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        {editingSlot ? 'Simpan Perubahan' : 'Buat Slot'}
+                                        {isPending ? 'Menyimpan...' : (editingSlot ? 'Perbarui' : 'Buat Slot')}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -362,7 +362,7 @@ export default function TimeSlotsPage() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(slot)}>
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(slot)} aria-label="Edit time slot">
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
                                                 <Button
