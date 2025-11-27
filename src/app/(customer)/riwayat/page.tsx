@@ -7,14 +7,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format, isPast, startOfDay, isSameDay } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Clock, User, Star, Loader2, Edit } from 'lucide-react';
+import { User, Star, Loader2, Edit, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar as DatePicker } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Dialog,
@@ -286,145 +286,148 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
     };
 
     return (
-        <Card className="overflow-hidden border-l-4 border-l-primary">
-            <CardContent className="p-6">
-                <div className="space-y-4">
-                    <div className="flex items-center flex-wrap gap-2">
-                        <Badge variant="outline" className={statusColor}>
-                            {statusLabel}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                            ID: #{booking.id}
-                        </span>
-                    </div>
-                    <h3 className="text-xl font-bold">{booking.service.name}</h3>
-                    <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 flex-shrink-0" />
-                            <span>{format(new Date(booking.booking_datetime), 'eeee, d MMMM yyyy', { locale: id })}</span>
+        <>
+            <Card className="overflow-hidden border border-border/60 bg-background/60 backdrop-blur-sm transition-shadow hover:shadow-lg">
+                <CardContent className="p-4 md:p-5">
+                    <div className="grid gap-4 md:gap-5">
+                        {/* Top row: status + service name */}
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant="outline" className={cn("px-2 py-0.5 text-[11px] md:text-xs font-medium rounded-md border", statusColor)}>
+                                    {statusLabel}
+                                </Badge>
+                                <span className="text-[11px] md:text-xs text-muted-foreground">ID #{booking.id}</span>
+                            </div>
+                            <h3 className="text-lg md:text-xl font-semibold leading-tight tracking-tight">
+                                {booking.service.name}
+                            </h3>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 flex-shrink-0" />
-                            <span>{format(new Date(booking.booking_datetime), 'HH:mm', { locale: id })}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 flex-shrink-0" />
-                            <span>{booking.barber.name}</span>
-                        </div>
-                    </div>
-                    <div className="text-2xl font-bold text-primary">
-                        {formatCurrency(booking.pricing.final_price)}
-                    </div>
 
-                    {/* Action Buttons for Pending/Confirmed */}
-                    {canReschedule && (
-                        <div className="flex flex-wrap gap-2 pt-2">
-                            <Button variant="outline" size="sm" className="gap-2" onClick={handleReschedule}>
-                                <Edit className="h-4 w-4" />
-                                Reschedule
-                            </Button>
-                            <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm">
-                                        Batalkan
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Batalkan Booking?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat dibatalkan.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Tidak</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                cancelMutation.mutate();
-                                            }}
-                                            className="bg-red-500 hover:bg-red-600"
-                                        >
-                                            {cancelMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ya, Batalkan'}
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
-                    )}
-
-                    {booking.status === 'completed' && (
-                        <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2">
-                                    <Star className="h-4 w-4" /> Beri Ulasan
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Beri Ulasan Layanan</DialogTitle>
-                                    <DialogDescription>
-                                        Bagaimana pengalaman cukur Anda dengan {booking.barber.name}?
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="rating"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Rating</FormLabel>
-                                                    <FormControl>
-                                                        <div className="flex gap-2">
-                                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                                <button
-                                                                    key={star}
-                                                                    type="button"
-                                                                    onClick={() => field.onChange(star)}
-                                                                    className={`focus:outline-none transition-colors ${star <= field.value ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'
-                                                                        }`}
-                                                                >
-                                                                    <Star className="h-8 w-8" fill={star <= field.value ? "currentColor" : "none"} />
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="comment"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Komentar (Opsional)</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            placeholder="Ceritakan pengalaman Anda..."
-                                                            {...field}
+                        {/* Middle: meta + price/actions in grid */}
+                        <div className="grid md:grid-cols-[1fr_auto] gap-6 md:gap-8 items-start">
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <CalendarDays className="h-4 w-4" />
+                                    <span>{format(new Date(booking.booking_datetime), 'eeee, d MMMM yyyy • HH:mm', { locale: id })}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <User className="h-4 w-4" />
+                                    <span>{booking.barber.name}</span>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3 w-full md:w-56">
+                                <div className="flex flex-col pb-1">
+                                    <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Total</span>
+                                    <span className="text-2xl font-bold text-primary leading-none">{formatCurrency(booking.pricing.final_price)}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {canReschedule && (
+                                        <Button variant="outline" size="sm" className="gap-1" onClick={handleReschedule} aria-label="Reschedule booking">
+                                            <Edit className="h-4 w-4" />
+                                            <span>Reschedule</span>
+                                        </Button>
+                                    )}
+                                    {canReschedule && (
+                                        <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="destructive" size="sm" aria-label="Batalkan booking">
+                                                    Batalkan
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Batalkan Booking?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat dibatalkan.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Tidak</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            cancelMutation.mutate();
+                                                        }}
+                                                        className="bg-red-500 hover:bg-red-600"
+                                                    >
+                                                        {cancelMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ya, Batalkan'}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
+                                    {booking.status === 'completed' && (
+                                        <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm" className="gap-1" aria-label="Beri ulasan">
+                                                    <Star className="h-4 w-4" /> Ulasan
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Beri Ulasan Layanan</DialogTitle>
+                                                    <DialogDescription>
+                                                        Bagaimana pengalaman cukur Anda dengan {booking.barber.name}?
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <Form {...form}>
+                                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="rating"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Rating</FormLabel>
+                                                                    <FormControl>
+                                                                        <div className="flex gap-2">
+                                                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                                                <button
+                                                                                    key={star}
+                                                                                    type="button"
+                                                                                    onClick={() => field.onChange(star)}
+                                                                                    className={`focus:outline-none transition-colors ${star <= field.value ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'}`}
+                                                                                >
+                                                                                    <Star className="h-8 w-8" fill={star <= field.value ? "currentColor" : "none"} />
+                                                                                </button>
+                                                                            ))}
+                                                                        </div>
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
                                                         />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <DialogFooter>
-                                            <Button type="submit" disabled={reviewMutation.isPending}>
-                                                {reviewMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                Kirim Ulasan
-                                            </Button>
-                                        </DialogFooter>
-                                    </form>
-                                </Form>
-                            </DialogContent>
-                        </Dialog>
-                    )}
-                </div>
-            </div>
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="comment"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Komentar (Opsional)</FormLabel>
+                                                                    <FormControl>
+                                                                        <Textarea placeholder="Ceritakan pengalaman Anda..." {...field} />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <DialogFooter>
+                                                            <Button type="submit" disabled={reviewMutation.isPending}>
+                                                                {reviewMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                                Kirim Ulasan
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </form>
+                                                </Form>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
-            {/* Reschedule Dialog */}
+            {/* Reschedule Dialog - Outside Card to prevent overlap */}
             <Dialog open={isRescheduleOpen} onOpenChange={setIsRescheduleOpen}>
                 <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
@@ -477,7 +480,7 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                         {/* Date Picker */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Tanggal</label>
-                            <Calendar
+                            <DatePicker
                                 mode="single"
                                 selected={rescheduleDate}
                                 onSelect={setRescheduleDate}
@@ -525,7 +528,6 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </CardContent>
-        </Card >
+        </>
     );
 }
