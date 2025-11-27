@@ -127,12 +127,12 @@ export default function TimeSlotsPage() {
             await api.post('/api/admin/time-slots', data);
         },
         onSuccess: () => {
-            toast.success('Slot waktu berhasil dibuat');
+            toast.success('Slot waktu berhasil dibuat!');
             queryClient.invalidateQueries({ queryKey: ['time-slots'] });
             handleOpenChange(false);
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Gagal membuat slot waktu');
+            toast.error(error.response?.data?.message || error.message || 'Gagal membuat slot waktu');
         },
     });
 
@@ -142,12 +142,12 @@ export default function TimeSlotsPage() {
             await api.put(`/api/admin/time-slots/${editingSlot.id}`, data);
         },
         onSuccess: () => {
-            toast.success('Slot waktu berhasil diperbarui');
+            toast.success('Slot waktu berhasil diperbarui!');
             queryClient.invalidateQueries({ queryKey: ['time-slots'] });
             handleOpenChange(false);
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Gagal memperbarui slot waktu');
+            toast.error(error.response?.data?.message || error.message || 'Gagal memperbarui slot waktu');
         },
     });
 
@@ -156,11 +156,11 @@ export default function TimeSlotsPage() {
             await api.delete(`/api/admin/time-slots/${id}`);
         },
         onSuccess: () => {
-            toast.success('Slot waktu berhasil dihapus');
+            toast.success('Slot waktu berhasil dihapus!');
             queryClient.invalidateQueries({ queryKey: ['time-slots'] });
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Gagal menghapus slot waktu');
+            toast.error(error.response?.data?.message || error.message || 'Gagal menghapus slot waktu');
         },
     });
 

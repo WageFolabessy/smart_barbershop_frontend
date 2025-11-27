@@ -76,10 +76,38 @@ export default function BookingPage() {
         },
     });
 
+    // Check Availability Mutation
+    const checkAvailabilityMutation = useMutation({
+        mutationFn: async () => {
+            if (!selectedService || !selectedBarber || !date || !selectedTimeSlot) return { available: false };
+
+            const dateStr = format(date, 'yyyy-MM-dd');
+            const dateTime = `${dateStr} ${selectedTimeSlot.start_time}:00`;
+
+            const res = await api.post<{ available: boolean }>('/api/bookings/check-availability', {
+                datetime: dateTime,
+                barber_id: selectedBarber.id,
+                service_duration: selectedService.duration_minutes,
+            });
+
+            return res.data;
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || 'Gagal mengecek ketersediaan');
+        },
+    });
+
     // Create Booking Mutation
     const createBookingMutation = useMutation({
         mutationFn: async () => {
             if (!selectedService || !selectedBarber || !date || !selectedTimeSlot) return;
+
+            // Check availability first
+            const availabilityCheck = await checkAvailabilityMutation.mutateAsync();
+
+            if (!availabilityCheck?.available) {
+                throw new Error('Slot waktu ini sudah tidak tersedia. Silakan pilih waktu lain.');
+            }
 
             // Combine date and time
             const dateStr = format(date, 'yyyy-MM-dd');
@@ -98,7 +126,12 @@ export default function BookingPage() {
             router.push('/riwayat');
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Gagal membuat janji temu.');
+            toast.error(error.response?.data?.message || error.message || 'Gagal membuat janji temu.');
+            // If availability check failed, go back to step 3
+            if (error.message?.includes('tidak tersedia')) {
+                setStep(3);
+                setSelectedTimeSlot(null);
+            }
         },
     });
 

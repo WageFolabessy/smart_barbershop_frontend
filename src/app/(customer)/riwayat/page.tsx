@@ -1,19 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format } from 'date-fns';
+import { format, isPast, startOfDay, isSameDay } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Calendar, Clock, User, Star, Loader2 } from 'lucide-react';
+import { Clock, User, Star, Loader2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar } from '@/components/ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Dialog,
     DialogContent,
@@ -24,6 +26,17 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
     Form,
     FormControl,
     FormField,
@@ -32,9 +45,9 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
-import { Booking } from '@/types/api';
+import { Booking, Service, User as UserType, TimeSlot } from '@/types/api';
 
 // Review Schema
 const reviewSchema = z.object({
@@ -117,7 +130,60 @@ export default function HistoryPage() {
 }
 
 function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, statusColor: string, statusLabel: string }) {
+    const queryClient = useQueryClient();
     const [isReviewOpen, setIsReviewOpen] = useState(false);
+    const [isCancelOpen, setIsCancelOpen] = useState(false);
+    const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
+
+    // Reschedule state
+    const [rescheduleService, setRescheduleService] = useState<Service | null>(null);
+    const [rescheduleBarber, setRescheduleBarber] = useState<UserType | null>(null);
+    const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(undefined);
+    const [rescheduleTimeSlot, setRescheduleTimeSlot] = useState<TimeSlot | null>(null);
+
+    // Fetch services for reschedule
+    const { data: services } = useQuery({
+        queryKey: ['services'],
+        queryFn: async () => {
+            const res = await api.get<{ data: Service[] }>('/api/services');
+            return res.data.data;
+        },
+        enabled: isRescheduleOpen,
+    });
+
+    // Fetch barbers for reschedule
+    const { data: barbers } = useQuery({
+        queryKey: ['barbers'],
+        queryFn: async () => {
+            const now = new Date().toISOString();
+            try {
+                const res = await api.get<{ available_barbers: { id: number | string, name: string }[] }>('/api/bookings/available-barbers', {
+                    params: { datetime: now }
+                });
+                return res.data.available_barbers.map(b => ({
+                    id: Number(b.id),
+                    name: b.name,
+                    email: '',
+                    role: 'barber' as const,
+                    created_at: '',
+                    updated_at: ''
+                }));
+            } catch (e) {
+                return [];
+            }
+        },
+        enabled: isRescheduleOpen,
+    });
+
+    // Fetch time slots for reschedule
+    const { data: timeSlots } = useQuery({
+        queryKey: ['time-slots'],
+        queryFn: async () => {
+            const res = await api.get<{ data: TimeSlot[] }>('/api/time-slots');
+            return res.data.data;
+        },
+        enabled: isRescheduleOpen,
+    });
 
     const form = useForm<ReviewFormValues>({
         resolver: zodResolver(reviewSchema),
@@ -137,13 +203,83 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
         onSuccess: () => {
             toast.success('Terima kasih atas ulasan Anda!');
             setIsReviewOpen(false);
-            // Invalidate queries if needed, e.g., to hide the button or show the review
-            // For now, we just close the modal. Ideally, backend should mark booking as reviewed.
+            // Invalidate queries if needed
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Gagal mengirim ulasan');
+            toast.error(error.response?.data?.message || error.message || 'Gagal mengirim ulasan');
         },
     });
+
+    // Cancel Booking Mutation
+    const cancelMutation = useMutation({
+        mutationFn: async () => {
+            await api.delete(`/api/bookings/${booking.id}`);
+        },
+        onSuccess: () => {
+            toast.success('Booking berhasil dibatalkan');
+            setIsCancelOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['bookings'] });
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || 'Gagal membatalkan booking');
+        },
+    });
+
+    // Reschedule Booking Mutation
+    const rescheduleMutation = useMutation({
+        mutationFn: async () => {
+            if (!rescheduleService || !rescheduleBarber || !rescheduleDate || !rescheduleTimeSlot) return;
+
+            // Check if new time is in the past
+            const dateStr = format(rescheduleDate, 'yyyy-MM-dd');
+            const dateTime = `${dateStr} ${rescheduleTimeSlot.start_time}:00`;
+            const newDateTime = new Date(dateTime);
+
+            if (isPast(newDateTime)) {
+                throw new Error('Tidak dapat reschedule ke waktu yang sudah lewat');
+            }
+
+            // Check availability
+            const availRes = await api.post<{ available: boolean }>('/api/bookings/check-availability', {
+                datetime: dateTime,
+                barber_id: rescheduleBarber.id,
+                service_duration: rescheduleService.duration_minutes,
+            });
+
+            if (!availRes.data.available) {
+                throw new Error('Slot waktu ini sudah tidak tersedia. Silakan pilih waktu lain.');
+            }
+
+            // Perform reschedule
+            await api.put(`/api/bookings/${booking.id}`, {
+                service_id: rescheduleService.id,
+                barber_id: rescheduleBarber.id,
+                booking_datetime: dateTime,
+            });
+        },
+        onSuccess: () => {
+            toast.success('Booking berhasil direschedule!');
+            setIsRescheduleOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['bookings'] });
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || error.message || 'Gagal reschedule booking');
+        },
+    });
+
+    const handleReschedule = () => {
+        // Initialize reschedule state with current booking data
+        setRescheduleService(booking.service);
+        setRescheduleBarber(booking.barber);
+        setRescheduleDate(new Date(booking.booking_datetime));
+        // Find matching time slot
+        const currentTime = format(new Date(booking.booking_datetime), 'HH:mm');
+        const matchingSlot = timeSlots?.find(slot => slot.start_time === currentTime);
+        setRescheduleTimeSlot(matchingSlot || null);
+        setIsRescheduleOpen(true);
+    };
+
+    const canReschedule = ['pending', 'confirmed'].includes(booking.status);
 
     const onSubmit = (data: ReviewFormValues) => {
         reviewMutation.mutate(data);
@@ -182,6 +318,43 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                         <div className="text-xl font-bold text-primary">
                             {formatCurrency(booking.pricing.final_price)}
                         </div>
+
+                        {/* Action Buttons for Pending/Confirmed */}
+                        {canReschedule && (
+                            <div className="flex gap-2">
+                                <Button variant="outline" size="sm" className="gap-2" onClick={handleReschedule}>
+                                    <Edit className="h-4 w-4" />
+                                    Reschedule
+                                </Button>
+                                <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="sm" className="gap-2">
+                                            Batalkan
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Batalkan Booking?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat dibatalkan.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Tidak</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    cancelMutation.mutate();
+                                                }}
+                                                className="bg-red-500 hover:bg-red-600"
+                                            >
+                                                {cancelMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ya, Batalkan'}
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        )}
 
                         {booking.status === 'completed' && (
                             <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
@@ -253,6 +426,108 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                         )}
                     </div>
                 </div>
+
+                {/* Reschedule Dialog */}
+                <Dialog open={isRescheduleOpen} onOpenChange={setIsRescheduleOpen}>
+                    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>Reschedule Booking</DialogTitle>
+                            <DialogDescription>
+                                Ubah detail booking Anda. Kami akan mengecek ketersediaan sebelum menyimpan perubahan.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            {/* Service Selector */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Layanan</label>
+                                <Select value={rescheduleService?.id.toString()} onValueChange={(val) => {
+                                    const service = services?.find(s => s.id.toString() === val);
+                                    setRescheduleService(service || null);
+                                }}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih layanan" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {services?.map((service) => (
+                                            <SelectItem key={service.id} value={service.id.toString()}>
+                                                {service.name} - {formatCurrency(service.base_price)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Barber Selector */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Kapster</label>
+                                <Select value={rescheduleBarber?.id.toString()} onValueChange={(val) => {
+                                    const barber = barbers?.find(b => b.id.toString() === val);
+                                    setRescheduleBarber(barber || null);
+                                }}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih kapster" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {barbers?.map((barber) => (
+                                            <SelectItem key={barber.id} value={barber.id.toString()}>
+                                                {barber.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Date Picker */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Tanggal</label>
+                                <Calendar
+                                    mode="single"
+                                    selected={rescheduleDate}
+                                    onSelect={setRescheduleDate}
+                                    disabled={(date) => isPast(startOfDay(date)) && !isSameDay(date, new Date())}
+                                    className="rounded-md border"
+                                />
+                            </div>
+
+                            {/* Time Slot Selector */}
+                            {rescheduleDate && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Pilih Waktu</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {timeSlots?.map((slot) => (
+                                            <button
+                                                key={slot.id}
+                                                type="button"
+                                                onClick={() => setRescheduleTimeSlot(slot)}
+                                                className={cn(
+                                                    "p-3 border rounded-lg text-center transition-colors",
+                                                    rescheduleTimeSlot?.id === slot.id
+                                                        ? "bg-primary text-primary-foreground border-primary"
+                                                        : "hover:bg-accent hover:text-accent-foreground"
+                                                )}
+                                            >
+                                                <div className="text-sm font-medium">{slot.start_time}</div>
+                                                <div className="text-xs opacity-70">{slot.end_time}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsRescheduleOpen(false)}>
+                                Batal
+                            </Button>
+                            <Button
+                                onClick={() => rescheduleMutation.mutate()}
+                                disabled={!rescheduleService || !rescheduleBarber || !rescheduleDate || !rescheduleTimeSlot || rescheduleMutation.isPending}
+                            >
+                                {rescheduleMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Simpan Perubahan
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </CardContent>
         </Card>
     );

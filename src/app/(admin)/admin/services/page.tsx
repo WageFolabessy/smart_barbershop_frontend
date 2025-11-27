@@ -40,13 +40,13 @@ export default function ServicesPage() {
             }
         },
         onSuccess: () => {
-            toast.success(editingService ? 'Layanan diperbarui' : 'Layanan ditambahkan');
+            toast.success(editingService ? 'Layanan berhasil diperbarui!' : 'Layanan berhasil ditambahkan!');
             setIsDialogOpen(false);
             setEditingService(null);
             queryClient.invalidateQueries({ queryKey: ['admin-services'] });
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Gagal menyimpan layanan');
+            toast.error(error.response?.data?.message || error.message || 'Gagal menyimpan layanan');
         },
     });
 
@@ -56,7 +56,7 @@ export default function ServicesPage() {
             await api.delete(`/api/admin/services/${id}`);
         },
         onSuccess: () => {
-            toast.success('Layanan dihapus');
+            toast.success('Layanan berhasil dihapus!');
             queryClient.invalidateQueries({ queryKey: ['admin-services'] });
         },
     });
