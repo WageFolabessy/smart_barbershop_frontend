@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Plus, Pencil, Trash2, Loader2, Clock, Search } from 'lucide-react';
@@ -40,7 +40,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import api from '@/lib/axios';
-import { TimeSlot } from '@/types/api';
+import { TimeSlot, DayOfWeek, StoreTimeSlotRequest, UpdateTimeSlotRequest } from '@/types/api';
 
 // Schema
 const timeSlotSchema = z.object({
@@ -71,7 +71,7 @@ export default function TimeSlotsPage() {
     const [searchQuery, setSearchQuery] = useState('');
 
     // Fetch Time Slots
-    const { data: timeSlots, isLoading } = useQuery({
+    const { data: timeSlots = [], isLoading } = useQuery<TimeSlot[]>({
         queryKey: ['time-slots'],
         queryFn: async () => {
             const res = await api.get<{ data: TimeSlot[] }>('/api/time-slots');
@@ -81,7 +81,7 @@ export default function TimeSlotsPage() {
 
     // Form
     const form = useForm<TimeSlotFormValues>({
-        resolver: zodResolver(timeSlotSchema) as any,
+        resolver: zodResolver(timeSlotSchema) as Resolver<TimeSlotFormValues>,
         defaultValues: {
             day_of_week: 'monday',
             start_time: '09:00',
@@ -112,7 +112,7 @@ export default function TimeSlotsPage() {
     const handleEdit = (slot: TimeSlot) => {
         setEditingSlot(slot);
         form.reset({
-            day_of_week: slot.day_of_week as any,
+            day_of_week: slot.day_of_week as DayOfWeek,
             start_time: slot.start_time.substring(0, 5),
             end_time: slot.end_time.substring(0, 5),
             price_multiplier: slot.price_multiplier,
@@ -124,7 +124,7 @@ export default function TimeSlotsPage() {
 
     // Mutations
     const createMutation = useMutation({
-        mutationFn: async (data: TimeSlotFormValues) => {
+        mutationFn: async (data: StoreTimeSlotRequest) => {
             await api.post('/api/admin/time-slots', data);
         },
         onSuccess: () => {
@@ -132,13 +132,21 @@ export default function TimeSlotsPage() {
             queryClient.invalidateQueries({ queryKey: ['time-slots'] });
             handleOpenChange(false);
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal membuat slot waktu');
+        onError: (error: unknown) => {
+            const message = (() => {
+                if (typeof error === 'string') return error;
+                if (error && typeof error === 'object') {
+                    const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+                    return errObj.response?.data?.message || errObj.message;
+                }
+                return undefined;
+            })();
+            toast.error(message || 'Gagal membuat slot waktu');
         },
     });
 
     const updateMutation = useMutation({
-        mutationFn: async (data: TimeSlotFormValues) => {
+        mutationFn: async (data: UpdateTimeSlotRequest) => {
             if (!editingSlot) return;
             await api.put(`/api/admin/time-slots/${editingSlot.id}`, data);
         },
@@ -147,8 +155,16 @@ export default function TimeSlotsPage() {
             queryClient.invalidateQueries({ queryKey: ['time-slots'] });
             handleOpenChange(false);
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal memperbarui slot waktu');
+        onError: (error: unknown) => {
+            const message = (() => {
+                if (typeof error === 'string') return error;
+                if (error && typeof error === 'object') {
+                    const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+                    return errObj.response?.data?.message || errObj.message;
+                }
+                return undefined;
+            })();
+            toast.error(message || 'Gagal memperbarui slot waktu');
         },
     });
 
@@ -160,16 +176,32 @@ export default function TimeSlotsPage() {
             toast.success('Slot waktu berhasil dihapus!');
             queryClient.invalidateQueries({ queryKey: ['time-slots'] });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal menghapus slot waktu');
+        onError: (error: unknown) => {
+            const message = (() => {
+                if (typeof error === 'string') return error;
+                if (error && typeof error === 'object') {
+                    const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+                    return errObj.response?.data?.message || errObj.message;
+                }
+                return undefined;
+            })();
+            toast.error(message || 'Gagal menghapus slot waktu');
         },
     });
 
     const onSubmit = (data: TimeSlotFormValues) => {
+        const payload: StoreTimeSlotRequest = {
+            day_of_week: data.day_of_week,
+            start_time: data.start_time,
+            end_time: data.end_time,
+            price_multiplier: data.price_multiplier,
+            label: data.label ?? null,
+            is_active: data.is_active,
+        };
         if (editingSlot) {
-            updateMutation.mutate(data);
+            updateMutation.mutate(payload);
         } else {
-            createMutation.mutate(data);
+            createMutation.mutate(payload);
         }
     };
 
@@ -326,7 +358,7 @@ export default function TimeSlotsPage() {
                 <CardHeader>
                     <CardTitle>Daftar Slot Waktu</CardTitle>
                     <CardDescription>
-                        Total {timeSlots?.length || 0} slot waktu terdaftar.
+                        Total {timeSlots.length} slot waktu terdaftar.
                     </CardDescription>
                     <div className="pt-4">
                         <div className="relative">
@@ -356,7 +388,7 @@ export default function TimeSlotsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {(Array.isArray(timeSlots) ? timeSlots.filter(slot => {
+                                {(Array.isArray(timeSlots) ? timeSlots.filter((slot: TimeSlot) => {
                                     const dayLabel = DAYS.find(d => d.value === slot.day_of_week)?.label || slot.day_of_week;
                                     const term = searchQuery.toLowerCase();
                                     return (
@@ -365,7 +397,7 @@ export default function TimeSlotsPage() {
                                         slot.start_time.substring(0,5).includes(term) ||
                                         slot.end_time.substring(0,5).includes(term)
                                     );
-                                }) : []).map((slot) => (
+                                }) : []).map((slot: TimeSlot) => (
                                     <TableRow key={slot.id}>
                                         <TableCell className="font-medium">
                                             {DAYS.find(d => d.value === slot.day_of_week)?.label || slot.day_of_week}

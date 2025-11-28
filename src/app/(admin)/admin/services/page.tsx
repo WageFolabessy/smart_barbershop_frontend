@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
-import { Service } from '@/types/api';
+import { Service, StoreServiceRequest, UpdateServiceRequest } from '@/types/api';
 
 export default function ServicesPage() {
     const queryClient = useQueryClient();
@@ -23,7 +23,7 @@ export default function ServicesPage() {
     const [searchQuery, setSearchQuery] = useState('');
 
     // Fetch Services
-    const { data: services, isLoading } = useQuery({
+    const { data: services = [], isLoading } = useQuery<Service[]>({
         queryKey: ['admin-services'],
         queryFn: async () => {
             const res = await api.get<{ data: Service[] }>('/api/services');
@@ -33,11 +33,11 @@ export default function ServicesPage() {
 
     // Create/Update Mutation
     const saveMutation = useMutation({
-        mutationFn: async (data: any) => {
+        mutationFn: async (data: StoreServiceRequest | UpdateServiceRequest) => {
             if (editingService) {
-                await api.put(`/api/admin/services/${editingService.id}`, data);
+                await api.put(`/api/admin/services/${editingService.id}`, data as UpdateServiceRequest);
             } else {
-                await api.post('/api/admin/services', data);
+                await api.post('/api/admin/services', data as StoreServiceRequest);
             }
         },
         onSuccess: () => {
@@ -46,8 +46,16 @@ export default function ServicesPage() {
             setEditingService(null);
             queryClient.invalidateQueries({ queryKey: ['admin-services'] });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal menyimpan layanan');
+        onError: (error: unknown) => {
+            const message = (() => {
+                if (typeof error === 'string') return error;
+                if (error && typeof error === 'object') {
+                    const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+                    return errObj.response?.data?.message || errObj.message;
+                }
+                return undefined;
+            })();
+            toast.error(message || 'Gagal menyimpan layanan');
         },
     });
 
@@ -65,17 +73,17 @@ export default function ServicesPage() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        const data = {
-            name: formData.get('name'),
-            description: formData.get('description'),
+        const data: StoreServiceRequest = {
+            name: String(formData.get('name') || ''),
+            description: (formData.get('description') ? String(formData.get('description')) : undefined),
             base_price: Number(formData.get('base_price')),
             duration_minutes: Number(formData.get('duration_minutes')),
-            is_active: true, // Default active
+            is_active: true,
         };
         saveMutation.mutate(data);
     };
 
-    const filteredServices = Array.isArray(services) ? services.filter(s =>
+    const filteredServices = Array.isArray(services) ? services.filter((s: Service) =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (s.description || '').toLowerCase().includes(searchQuery.toLowerCase())
     ) : [];
@@ -134,7 +142,7 @@ export default function ServicesPage() {
                 <CardHeader>
                     <CardTitle>Daftar Layanan</CardTitle>
                     <CardDescription>
-                        Total {services?.length || 0} layanan terdaftar.
+                        Total {services.length} layanan terdaftar.
                     </CardDescription>
                     <div className="pt-4">
                         <div className="relative">

@@ -61,7 +61,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import api from '@/lib/axios';
-import { User } from '@/types/api';
+import { User, StoreUserRequest, UpdateUserRequest } from '@/types/api';
 
 // Schema Validation
 const userSchema = z.object({
@@ -105,7 +105,7 @@ export default function UsersPage() {
     });
 
     // Fetch Users
-    const { data: users, isLoading, isError, error, refetch } = useQuery({
+    const { data: users, isLoading, isError, error, refetch } = useQuery<User[]>({
         queryKey: ['users'],
         queryFn: async () => {
             const res = await api.get('/api/admin/users');
@@ -129,7 +129,7 @@ export default function UsersPage() {
 
     // Create User Mutation
     const createUserMutation = useMutation({
-        mutationFn: async (data: UserFormValues) => {
+        mutationFn: async (data: StoreUserRequest) => {
             await api.post('/api/admin/users', data);
         },
         onSuccess: () => {
@@ -138,22 +138,24 @@ export default function UsersPage() {
             setIsDialogOpen(false);
             form.reset();
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal membuat pengguna');
+        onError: (error: unknown) => {
+            const message = (() => {
+                if (typeof error === 'string') return error;
+                if (error && typeof error === 'object') {
+                    const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+                    return errObj.response?.data?.message || errObj.message;
+                }
+                return undefined;
+            })();
+            toast.error(message || 'Gagal membuat pengguna');
         },
     });
 
     // Update User Mutation
     const updateUserMutation = useMutation({
-        mutationFn: async (data: UserFormValues) => {
+        mutationFn: async (data: UpdateUserRequest) => {
             if (!editingUser) return;
-            // Filter out empty password fields if not changing password
-            const payload: any = { ...data };
-            if (!payload.password) {
-                delete payload.password;
-                delete payload.password_confirmation;
-            }
-            await api.put(`/api/admin/users/${editingUser.id}`, payload);
+            await api.put(`/api/admin/users/${editingUser.id}`, data);
         },
         onSuccess: () => {
             toast.success('Pengguna berhasil diperbarui!');
@@ -162,8 +164,16 @@ export default function UsersPage() {
             setEditingUser(null);
             form.reset();
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal memperbarui pengguna');
+        onError: (error: unknown) => {
+            const message = (() => {
+                if (typeof error === 'string') return error;
+                if (error && typeof error === 'object') {
+                    const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+                    return errObj.response?.data?.message || errObj.message;
+                }
+                return undefined;
+            })();
+            toast.error(message || 'Gagal memperbarui pengguna');
         },
     });
 
@@ -178,21 +188,43 @@ export default function UsersPage() {
             setIsDeleteDialogOpen(false);
             setDeletingUser(null);
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal menghapus pengguna');
+        onError: (error: unknown) => {
+            const message = (() => {
+                if (typeof error === 'string') return error;
+                if (error && typeof error === 'object') {
+                    const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+                    return errObj.response?.data?.message || errObj.message;
+                }
+                return undefined;
+            })();
+            toast.error(message || 'Gagal menghapus pengguna');
         },
     });
 
     const onSubmit = (data: UserFormValues) => {
         if (editingUser) {
-            updateUserMutation.mutate(data);
+            const payload: UpdateUserRequest = {
+                name: data.name,
+                email: data.email,
+                phone: data.phone || undefined,
+                role: data.role,
+                ...(data.password ? { password: data.password, password_confirmation: data.password_confirmation || '' } : {}),
+            };
+            updateUserMutation.mutate(payload);
         } else {
-            // Manual validation for password on create
             if (!data.password) {
                 form.setError('password', { message: 'Password wajib diisi untuk pengguna baru' });
                 return;
             }
-            createUserMutation.mutate(data);
+            const payload: StoreUserRequest = {
+                name: data.name,
+                email: data.email,
+                phone: data.phone || undefined,
+                role: data.role,
+                password: data.password,
+                password_confirmation: data.password_confirmation || '',
+            };
+            createUserMutation.mutate(payload);
         }
     };
 
@@ -273,7 +305,16 @@ export default function UsersPage() {
                     ) : isError ? (
                         <div className="text-center py-8">
                             <p className="text-red-600">Gagal memuat pengguna.</p>
-                            <p className="text-muted-foreground text-sm mt-1">{(error as any)?.response?.data?.message || (error as Error)?.message || 'Terjadi kesalahan tak terduga.'}</p>
+                            <p className="text-muted-foreground text-sm mt-1">{
+                                (() => {
+                                    if (!error) return 'Terjadi kesalahan tak terduga.';
+                                    if (typeof error === 'string') return error;
+                                    const errObj = error as { response?: { data?: { message?: string } } };
+                                    if (errObj?.response?.data?.message) return errObj.response.data.message;
+                                    const err = error as Error;
+                                    return err.message || 'Terjadi kesalahan tak terduga.';
+                                })()
+                            }</p>
                             <Button variant="outline" className="mt-3" onClick={() => refetch()}>Coba Lagi</Button>
                         </div>
                     ) : (
@@ -457,7 +498,9 @@ export default function UsersPage() {
                         <AlertDialogAction
                             onClick={(e) => {
                                 e.preventDefault();
-                                deletingUser && deleteUserMutation.mutate(deletingUser.id);
+                                if (deletingUser) {
+                                    deleteUserMutation.mutate(deletingUser.id);
+                                }
                             }}
                             className="bg-red-500 hover:bg-red-600"
                         >

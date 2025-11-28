@@ -18,9 +18,35 @@ export interface Service {
     created_at: string;
 }
 
+// Service DTOs (requests)
+export interface StoreServiceRequest {
+    name: string;
+    description?: string;
+    base_price: number;
+    duration_minutes: number;
+    is_active: boolean;
+}
+
+export interface UpdateServiceRequest {
+    name: string;
+    description?: string;
+    base_price: number;
+    duration_minutes: number;
+    is_active: boolean;
+}
+
+export type DayOfWeek =
+    | 'monday'
+    | 'tuesday'
+    | 'wednesday'
+    | 'thursday'
+    | 'friday'
+    | 'saturday'
+    | 'sunday';
+
 export interface TimeSlot {
     id: number;
-    day_of_week: string;
+    day_of_week: DayOfWeek;
     start_time: string;
     end_time: string;
     price_multiplier: number;
@@ -28,6 +54,17 @@ export interface TimeSlot {
     is_active: boolean;
     is_peak_hour?: boolean; // Frontend computed field
 }
+
+export interface StoreTimeSlotRequest {
+    day_of_week: DayOfWeek;
+    start_time: string; // HH:MM
+    end_time: string; // HH:MM
+    price_multiplier: number;
+    label?: string | null;
+    is_active: boolean;
+}
+
+export interface UpdateTimeSlotRequest extends StoreTimeSlotRequest {}
 
 export interface Booking {
     id: number;
@@ -94,6 +131,24 @@ export interface PaginatedResponse<T> {
 export interface LoginResponse {
     token: string;
     user: User;
+}
+
+export interface StoreUserRequest {
+    name: string;
+    email: string;
+    phone?: string | null;
+    role: 'admin' | 'barber' | 'customer';
+    password: string;
+    password_confirmation: string;
+}
+
+export interface UpdateUserRequest {
+    name: string;
+    email: string;
+    phone?: string | null;
+    role: 'admin' | 'barber' | 'customer';
+    password?: string;
+    password_confirmation?: string;
 }
 
 // Dashboard API Types
