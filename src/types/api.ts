@@ -95,3 +95,69 @@ export interface LoginResponse {
     token: string;
     user: User;
 }
+
+// Dashboard API Types
+export interface DashboardOverviewCounts {
+    all?: number;
+    pending?: number;
+    confirmed?: number;
+    completed?: number;
+    cancelled?: number;
+}
+
+export interface DashboardOverview {
+    total_users?: { all?: number } | number;
+    total_bookings?: DashboardOverviewCounts | number;
+    total_services?: number;
+    total_hair_records?: number;
+    today_bookings?: number;
+    upcoming_bookings?: number;
+}
+
+export interface DashboardRevenueSummary {
+    today?: number;
+    this_week?: number;
+    this_month?: number;
+    this_year?: number;
+}
+
+export interface DashboardRevenueEnvelope {
+    revenue: DashboardRevenueSummary;
+}
+
+export interface DashboardPopularService {
+    service_id: number;
+    service_name: string;
+    booking_count: number;
+    base_price?: number;
+}
+
+export interface DashboardPopularServicesEnvelope {
+    popular_services: DashboardPopularService[];
+}
+
+export interface DashboardBarberPerformance {
+    barber_id: number;
+    barber_name: string;
+    total_bookings: number;
+    completed_bookings: number;
+}
+
+export interface DashboardBarberPerformanceEnvelope {
+    barber_performance: DashboardBarberPerformance[];
+}
+
+export interface DashboardRecentBooking {
+    id: number;
+    customer_name: string;
+    barber_name?: string;
+    service_name: string;
+    booking_datetime: string;
+    final_price: number;
+    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+    created_at: string;
+}
+
+export interface DashboardRecentBookingsEnvelope {
+    recent_bookings: DashboardRecentBooking[];
+}
