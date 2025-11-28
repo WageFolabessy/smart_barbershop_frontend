@@ -64,6 +64,11 @@ export default function HistoryPage() {
             const res = await api.get<{ data: Booking[] }>('/api/bookings');
             return res.data.data;
         },
+        // Ensure fresh data when arriving on this page
+        staleTime: 0,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
+        refetchOnWindowFocus: false,
     });
 
     const getStatusColor = (status: string) => {
