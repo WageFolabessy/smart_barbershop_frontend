@@ -15,12 +15,24 @@ import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Service, StoreServiceRequest, UpdateServiceRequest } from '@/types/api';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function ServicesPage() {
     const queryClient = useQueryClient();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingService, setEditingService] = useState<Service | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deletingService, setDeletingService] = useState<Service | null>(null);
 
     // Fetch Services
     const { data: services = [], isLoading } = useQuery<Service[]>({
@@ -67,8 +79,26 @@ export default function ServicesPage() {
         onSuccess: () => {
             toast.success('Layanan berhasil dihapus!');
             queryClient.invalidateQueries({ queryKey: ['admin-services'] });
+            setIsDeleteDialogOpen(false);
+            setDeletingService(null);
+        },
+        onError: (error: unknown) => {
+            const message = (() => {
+                if (typeof error === 'string') return error;
+                if (error && typeof error === 'object') {
+                    const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+                    return errObj.response?.data?.message || errObj.message;
+                }
+                return undefined;
+            })();
+            toast.error(message || 'Gagal menghapus layanan');
         },
     });
+
+    const handleDeleteClick = (service: Service) => {
+        setDeletingService(service);
+        setIsDeleteDialogOpen(true);
+    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -194,11 +224,7 @@ export default function ServicesPage() {
                                                 }}>
                                                     <Pencil className="mr-2 h-4 w-4" /> Edit
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive" onClick={() => {
-                                                    if (confirm('Apakah Anda yakin ingin menghapus layanan ini?')) {
-                                                        deleteMutation.mutate(service.id);
-                                                    }
-                                                }}>
+                                                <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(service)}>
                                                     <Trash className="mr-2 h-4 w-4" /> Hapus
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -217,6 +243,32 @@ export default function ServicesPage() {
                     </Table>
                 </CardContent>
             </Card>
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Tindakan ini tidak dapat dibatalkan. Layanan <strong>{deletingService?.name}</strong> akan dihapus secara permanen.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (deletingService) {
+                                    deleteMutation.mutate(deletingService.id);
+                                }
+                            }}
+                            className="bg-red-500 hover:bg-red-600"
+                        >
+                            {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {deleteMutation.isPending ? 'Menghapus...' : 'Hapus'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

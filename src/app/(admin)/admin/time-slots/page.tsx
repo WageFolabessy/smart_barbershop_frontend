@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Pencil, Trash2, Loader2, Clock, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Clock, Search, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -39,8 +39,24 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import api from '@/lib/axios';
 import { TimeSlot, DayOfWeek, StoreTimeSlotRequest, UpdateTimeSlotRequest } from '@/types/api';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // Schema
 const timeSlotSchema = z.object({
@@ -68,6 +84,8 @@ export default function TimeSlotsPage() {
     const queryClient = useQueryClient();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deletingSlot, setDeletingSlot] = useState<TimeSlot | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
     // Fetch Time Slots
@@ -175,6 +193,8 @@ export default function TimeSlotsPage() {
         onSuccess: () => {
             toast.success('Slot waktu berhasil dihapus!');
             queryClient.invalidateQueries({ queryKey: ['time-slots'] });
+            setIsDeleteDialogOpen(false);
+            setDeletingSlot(null);
         },
         onError: (error: unknown) => {
             const message = (() => {
@@ -188,6 +208,11 @@ export default function TimeSlotsPage() {
             toast.error(message || 'Gagal menghapus slot waktu');
         },
     });
+
+    const handleDelete = (slot: TimeSlot) => {
+        setDeletingSlot(slot);
+        setIsDeleteDialogOpen(true);
+    };
 
     const onSubmit = (data: TimeSlotFormValues) => {
         const payload: StoreTimeSlotRequest = {
@@ -384,7 +409,7 @@ export default function TimeSlotsPage() {
                                     <TableHead>Multiplier</TableHead>
                                     <TableHead>Label</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Aksi</TableHead>
+                                    <TableHead className="w-[100px] text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -417,23 +442,21 @@ export default function TimeSlotsPage() {
                                             </span>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(slot)} aria-label="Edit time slot">
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                                                    onClick={() => {
-                                                        if (confirm('Apakah Anda yakin ingin menghapus slot ini?')) {
-                                                            deleteMutation.mutate(slot.id);
-                                                        }
-                                                    }}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" aria-label="Menu tindakan">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => handleEdit(slot)}>
+                                                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => handleDelete(slot)}>
+                                                        <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -465,6 +488,32 @@ export default function TimeSlotsPage() {
                     )}
                 </CardContent>
             </Card>
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Tindakan ini tidak dapat dibatalkan. Slot waktu <strong>{deletingSlot ? `${DAYS.find(d => d.value === deletingSlot.day_of_week)?.label} ${deletingSlot.start_time.substring(0,5)}-${deletingSlot.end_time.substring(0,5)}` : ''}</strong> akan dihapus secara permanen.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (deletingSlot) {
+                                    deleteMutation.mutate(deletingSlot.id);
+                                }
+                            }}
+                            className="bg-red-500 hover:bg-red-600"
+                        >
+                            {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {deleteMutation.isPending ? 'Menghapus...' : 'Hapus'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
