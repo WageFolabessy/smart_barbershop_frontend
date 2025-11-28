@@ -29,10 +29,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import api from '@/lib/axios';
-import { Booking, Review } from '@/types/api';
+import { Booking, Review, HairRecord } from '@/types/api';
 import { useAuthStore } from '@/store/useAuthStore';
-
-// ... (imports)
 
 export default function BarberDashboard() {
     const queryClient = useQueryClient();
@@ -41,9 +39,9 @@ export default function BarberDashboard() {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
 
     // Hair Record Management State
-    const [editingRecord, setEditingRecord] = useState<any | null>(null);
+    const [editingRecord, setEditingRecord] = useState<HairRecord | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [deletingRecord, setDeletingRecord] = useState<any | null>(null);
+    const [deletingRecord, setDeletingRecord] = useState<HairRecord | null>(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
     // Fetch Bookings (only those belonging to this barber)
@@ -58,13 +56,22 @@ export default function BarberDashboard() {
     });
 
     // Fetch Hair Records
-    const { data: hairRecords, isLoading: isLoadingRecords } = useQuery({
+    const { data: hairRecords, isLoading: isLoadingRecords } = useQuery<HairRecord[]>({
         queryKey: ['hair-records'],
         queryFn: async () => {
-            const res = await api.get<{ data: any[] }>('/api/hair-records');
+            const res = await api.get<{ data: HairRecord[] }>('/api/hair-records');
             return res.data.data;
         },
     });
+
+    const getErrorMessage = (error: unknown): string | undefined => {
+        if (typeof error === 'string') return error;
+        if (error && typeof error === 'object') {
+            const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+            return errObj.response?.data?.message || errObj.message;
+        }
+        return undefined;
+    };
 
     // Fetch Reviews
     const { data: reviews, isLoading: isLoadingReviews } = useQuery({
@@ -86,8 +93,8 @@ export default function BarberDashboard() {
             queryClient.invalidateQueries({ queryKey: ['barber-bookings', user?.id] });
             toast.success('Status booking diperbarui');
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal memperbarui status');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error) || 'Gagal memperbarui status');
         }
     });
 
@@ -109,8 +116,8 @@ export default function BarberDashboard() {
             setIsUploadOpen(false);
             queryClient.invalidateQueries({ queryKey: ['hair-records'] });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal mengupload hasil cukur');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error) || 'Gagal mengupload hasil cukur');
         },
     });
 
@@ -118,8 +125,6 @@ export default function BarberDashboard() {
     const editRecordMutation = useMutation({
         mutationFn: async (formData: FormData) => {
             if (!editingRecord) return;
-            // Use _method=PUT for Laravel FormData handling if needed, or just PUT if backend supports it directly
-            // Usually Laravel needs _method=PUT for multipart/form-data on PUT requests
             formData.append('_method', 'PUT');
             await api.post(`/api/hair-records/${editingRecord.id}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
@@ -131,8 +136,8 @@ export default function BarberDashboard() {
             setEditingRecord(null);
             queryClient.invalidateQueries({ queryKey: ['hair-records'] });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal memperbarui record');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error) || 'Gagal memperbarui record');
         },
     });
 
@@ -147,8 +152,8 @@ export default function BarberDashboard() {
             setDeletingRecord(null);
             queryClient.invalidateQueries({ queryKey: ['hair-records'] });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal menghapus record');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error) || 'Gagal menghapus record');
         },
     });
 
@@ -208,7 +213,6 @@ export default function BarberDashboard() {
                             <CardTitle>Antrian Hari Ini ({format(today, 'eeee, d MMMM yyyy', { locale: id })})</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {/* ... (Existing Booking List Logic) ... */}
                             {isLoadingBookings ? (
                                 <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                             ) : todayBookings.length === 0 ? (
@@ -404,7 +408,7 @@ export default function BarberDashboard() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-muted-foreground italic">"{review.comment || 'Tidak ada komentar'}"</p>
+                                            <p className="text-sm text-muted-foreground italic">&ldquo;{review.comment || 'Tidak ada komentar'}&rdquo;</p>
                                             <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
                                                 {format(new Date(review.created_at), 'd MMMM yyyy', { locale: id })}
                                             </p>
@@ -475,7 +479,11 @@ export default function BarberDashboard() {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Batal</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={() => deletingRecord && deleteRecordMutation.mutate(deletingRecord.id)}
+                            onClick={() => {
+                                if (deletingRecord) {
+                                    deleteRecordMutation.mutate(deletingRecord.id);
+                                }
+                            }}
                             className="bg-red-500 hover:bg-red-600"
                         >
                             {deleteRecordMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Hapus'}
