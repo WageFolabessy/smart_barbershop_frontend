@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background z-0" />
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-primary/10 via-background to-background z-0" />
 
       <div className="z-10 text-center space-y-6 max-w-2xl px-4">
         <div className="flex justify-center mb-8">
@@ -15,7 +15,7 @@ export default function Home() {
           </div>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-linear-to-b from-white to-white/50">
           Smart Barbershop
         </h1>
 
