@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosHeaders } from 'axios';
 import { env } from './env';
 import { AUTH_COOKIE_NAMES } from './constants';
 
@@ -13,14 +13,24 @@ const api = axios.create({
     withXSRFToken: true,
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
     // Get token from cookie (set in login/register)
     if (typeof window !== 'undefined') {
-        // Dynamic import to avoid SSR issues
-        const Cookies = require('js-cookie');
+        // Dynamic ESM import to avoid SSR issues
+        const { default: Cookies } = await import('js-cookie');
         const token = Cookies.get(AUTH_COOKIE_NAMES.TOKEN);
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            // Ensure headers exists
+            if (!config.headers) {
+                config.headers = new AxiosHeaders();
+            }
+            // Prefer AxiosHeaders API when available
+            if (config.headers instanceof AxiosHeaders) {
+                config.headers.set('Authorization', `Bearer ${token}`);
+            } else {
+                // Fallback for plain header objects
+                (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+            }
         }
     }
     return config;
