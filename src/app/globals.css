@@ -172,6 +172,14 @@
     white-space: nowrap;
     border-width: 0;
   }
+  /* Hide scrollbar cross-browser */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 /* Marquee animation for scrolling text */

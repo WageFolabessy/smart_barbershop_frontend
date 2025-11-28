@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, CartesianGrid, Legend } from 'recharts';
 import { CreditCard, Scissors, Users, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
@@ -249,14 +250,23 @@ export default function AdminDashboard() {
         { name: 'Dibatalkan', key: 'cancelled', value: safeNumber(bookingsStatusObject['cancelled'], 0) },
     ] : [];
 
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const handler = () => setIsMobile(window.innerWidth < 640);
+        handler();
+        window.addEventListener('resize', handler);
+        return () => window.removeEventListener('resize', handler);
+    }, []);
+
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-primary">Dashboard Overview</h1>
-                <p className="text-muted-foreground">Ringkasan performa bisnis Anda.</p>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">Dashboard Overview</h1>
+                <p className="text-sm sm:text-base text-muted-foreground">Ringkasan performa bisnis Anda.</p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Summary cards: switch from horizontal scroll to pure grid to prevent horizontal overflow on 430px width */}
+            <div className="grid grid-cols-2 max-[380px]:grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
@@ -307,7 +317,7 @@ export default function AdminDashboard() {
                         <CardTitle>Pendapatan Bulanan</CardTitle>
                     </CardHeader>
                     <CardContent className="pl-2">
-                        <ResponsiveContainer width="100%" height={350}>
+                        <ResponsiveContainer width="100%" height={isMobile ? 240 : 350}>
                             <BarChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" />
                                 <XAxis
@@ -362,7 +372,7 @@ export default function AdminDashboard() {
                         <CardTitle>Distribusi Status Booking</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
                             <PieChart>
                                 <Pie
                                     data={bookingsStatus}
@@ -378,7 +388,21 @@ export default function AdminDashboard() {
                                         <Cell key={`status-cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
-                                <Tooltip contentStyle={{ backgroundColor: '#1f1f1f', border: 'none', borderRadius: '8px' }} formatter={(value: number) => `${value} booking`} />
+                                <Tooltip
+                                    content={({ active, payload }) => {
+                                        if (!active || !payload || !payload.length) return null;
+                                        const item = payload[0];
+                                        const fill = (item && (item.payload as any))?.fill || item.color || '#fff';
+                                        const name = item.name || '';
+                                        const value = item.value as number;
+                                        return (
+                                            <div style={{ background:'#1f1f1f', border:`1px solid ${fill}`, borderRadius:8, padding:'6px 10px', minWidth:140 }}>
+                                                <div style={{ color: fill, fontSize:12, fontWeight:600 }}>{name}</div>
+                                                <div style={{ color:'#e5e5e5', fontSize:11 }}>{value} booking</div>
+                                            </div>
+                                        );
+                                    }}
+                                />
                                 <Legend verticalAlign="bottom" height={24} />
                             </PieChart>
                         </ResponsiveContainer>
@@ -392,7 +416,7 @@ export default function AdminDashboard() {
                         <CardTitle>Performa Kapster (Booking)</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
                             <BarChart data={Array.isArray(barberPerformance) ? barberPerformance : []} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                 <XAxis type="number" />
                                 <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 12 }} />
@@ -409,7 +433,7 @@ export default function AdminDashboard() {
                         <CardTitle>Distribusi Layanan</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
                             <PieChart>
                                 <Pie
                                     data={popularServices}
@@ -427,7 +451,19 @@ export default function AdminDashboard() {
                                     ))}
                                 </Pie>
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: '#1f1f1f', border: 'none', borderRadius: '8px' }}
+                                    content={({ active, payload }) => {
+                                        if (!active || !payload || !payload.length) return null;
+                                        const item = payload[0];
+                                        const fill = (item && (item.payload as any))?.fill || item.color || '#fff';
+                                        const name = item.name || '';
+                                        const value = item.value as number;
+                                        return (
+                                            <div style={{ background:'#1f1f1f', border:`1px solid ${fill}`, borderRadius:8, padding:'6px 10px', minWidth:140 }}>
+                                                <div style={{ color: fill, fontSize:12, fontWeight:600 }}>{name}</div>
+                                                <div style={{ color:'#e5e5e5', fontSize:11 }}>{value}x</div>
+                                            </div>
+                                        );
+                                    }}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
