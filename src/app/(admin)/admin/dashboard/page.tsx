@@ -257,6 +257,7 @@ export default function AdminDashboard() {
         window.addEventListener('resize', handler);
         return () => window.removeEventListener('resize', handler);
     }, []);
+        const shorten = (value: string, max: number) => value.length > max ? value.slice(0, max - 1) + '…' : value;
 
     return (
         <div className="space-y-6">
@@ -378,11 +379,11 @@ export default function AdminDashboard() {
                                     data={bookingsStatus}
                                     cx="50%"
                                     cy="50%"
-                                    labelLine={false}
-                                    outerRadius={85}
+                                    labelLine={!isMobile}
+                                    outerRadius={isMobile ? 70 : 85}
                                     dataKey="value"
                                     nameKey="name"
-                                    label={({ name, percent }: { name?: string, percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}
+                                    label={isMobile ? false : ({ name, percent }: { name?: string, percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}
                                 >
                                     {bookingsStatus.map((_, index) => (
                                         <Cell key={`status-cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -417,9 +418,9 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
-                            <BarChart data={Array.isArray(barberPerformance) ? barberPerformance : []} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <XAxis type="number" />
-                                <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 12 }} />
+                            <BarChart data={Array.isArray(barberPerformance) ? barberPerformance : []} layout="vertical" margin={{ top: 5, right: 20, left: isMobile ? 70 : 30, bottom: 5 }}>
+                                <XAxis type="number" tick={{ fontSize: isMobile ? 10 : 12 }} />
+                                <YAxis dataKey="name" type="category" width={isMobile ? 110 : 140} tickFormatter={(v: string) => isMobile ? shorten(v, 12) : v} tick={{ fontSize: isMobile ? 10 : 12 }} />
                                 <Tooltip contentStyle={{ backgroundColor: '#1f1f1f', border: 'none', borderRadius: '8px' }} />
                                 <Legend />
                                 <Bar dataKey="total_bookings" fill="#8884d8" radius={[0, 4, 4, 0]} name="Total Booking" />
@@ -440,7 +441,8 @@ export default function AdminDashboard() {
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
-                                    outerRadius={80}
+                                    outerRadius={isMobile ? 70 : 80}
+                                    innerRadius={isMobile ? 40 : undefined}
                                     fill="#8884d8"
                                     dataKey="count"
                                     nameKey="name"

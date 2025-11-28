@@ -295,7 +295,7 @@ export default function UsersPage() {
                         <div className="relative">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Cari nama, email, atau role..."
+                                placeholder="Cari nama, email, atau peran..."
                                 className="pl-8"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
