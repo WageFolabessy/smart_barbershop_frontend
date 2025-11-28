@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import api from '@/lib/axios';
+import { LoginRequest, LoginResponse } from '@/types/api';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const loginSchema = z.object({
@@ -43,15 +44,10 @@ export default function LoginPage() {
         try {
             await api.get('/sanctum/csrf-cookie');
 
-            const response = await api.post<any>('/api/auth/login', values);
-
-            // Handle potential nested data structure (Laravel Resource)
-            let data = response.data;
-            if (data.data) {
-                data = data.data;
-            }
-
-            const { user, token } = data;
+            const response = await api.post('/api/auth/login', values as LoginRequest);
+            const raw = response.data as { data?: LoginResponse } | LoginResponse;
+            const payload: LoginResponse = (raw as { data?: LoginResponse }).data ?? (raw as LoginResponse);
+            const { user, token } = payload;
 
             // Set cookies for middleware
             Cookies.set(AUTH_COOKIE_NAMES.TOKEN, token, COOKIE_OPTIONS);
@@ -66,9 +62,16 @@ export default function LoginPage() {
             } else {
                 router.push(ROUTES.BOOKING);
             }
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || 'Terjadi kesalahan saat masuk. Periksa kembali kredensial Anda.';
-            setError(errorMessage);
+        } catch (err: unknown) {
+            const message = (() => {
+                if (typeof err === 'string') return err;
+                if (err && typeof err === 'object') {
+                    const e = err as { response?: { data?: { message?: string } }; message?: string };
+                    return e.response?.data?.message || e.message;
+                }
+                return undefined;
+            })();
+            setError(message || 'Terjadi kesalahan saat masuk. Periksa kembali kredensial Anda.');
         } finally {
             setIsLoading(false);
         }

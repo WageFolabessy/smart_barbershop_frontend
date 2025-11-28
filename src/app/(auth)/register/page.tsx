@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import api from '@/lib/axios';
+import { RegisterRequest, LoginRequest, LoginResponse } from '@/types/api';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const registerSchema = z.object({
@@ -52,30 +53,22 @@ export default function RegisterPage() {
         try {
             await api.get('/sanctum/csrf-cookie');
 
-            const response = await api.post<any>('/api/auth/register', values);
-
-            // Handle potential nested data structure (Laravel Resource)
-            let data = response.data;
-            if (data.data) {
-                data = data.data;
-            }
-
-            let { user, token } = data;
+            const response = await api.post('/api/auth/register', values as RegisterRequest);
+            const raw = response.data as { data?: LoginResponse } | LoginResponse;
+            const payload: LoginResponse | undefined = (raw as { data?: LoginResponse }).data ?? (raw as LoginResponse);
+            let user = payload?.user;
+            let token = payload?.token;
 
             // If register doesn't return user/token, try to login
             if (!user || !token) {
-                const loginResponse = await api.post<any>('/api/auth/login', {
+                const loginResponse = await api.post('/api/auth/login', {
                     email: values.email,
                     password: values.password,
-                });
-
-                let loginData = loginResponse.data;
-                if (loginData.data) {
-                    loginData = loginData.data;
-                }
-
-                user = loginData.user;
-                token = loginData.token;
+                } as LoginRequest);
+                const loginRaw = loginResponse.data as { data?: LoginResponse } | LoginResponse;
+                const loginPayload: LoginResponse = (loginRaw as { data?: LoginResponse }).data ?? (loginRaw as LoginResponse);
+                user = loginPayload.user;
+                token = loginPayload.token;
             }
 
             if (user && token) {
@@ -87,9 +80,16 @@ export default function RegisterPage() {
             } else {
                 throw new Error('Gagal masuk otomatis setelah mendaftar. Silakan masuk secara manual.');
             }
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.';
-            setError(errorMessage);
+        } catch (err: unknown) {
+            const message = (() => {
+                if (typeof err === 'string') return err;
+                if (err && typeof err === 'object') {
+                    const e = err as { response?: { data?: { message?: string } }; message?: string };
+                    return e.response?.data?.message || e.message;
+                }
+                return undefined;
+            })();
+            setError(message || 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.');
         } finally {
             setIsLoading(false);
         }
