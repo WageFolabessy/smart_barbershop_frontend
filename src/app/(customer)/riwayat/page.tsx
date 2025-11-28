@@ -45,9 +45,9 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency, getErrorMessage } from '@/lib/utils';
 import api from '@/lib/axios';
-import { Booking, Service, User as UserType, TimeSlot } from '@/types/api';
+import { Booking, Service, User as UserType, TimeSlot, AvailableBarbersEnvelope, CheckAvailabilityResponse, ReviewRequest, UpdateBookingRequest } from '@/types/api';
 
 // Review Schema
 const reviewSchema = z.object({
@@ -162,7 +162,7 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
         queryFn: async () => {
             const now = new Date().toISOString();
             try {
-                const res = await api.get<{ available_barbers: { id: number | string, name: string }[] }>('/api/bookings/available-barbers', {
+                const res = await api.get<AvailableBarbersEnvelope>('/api/bookings/available-barbers', {
                     params: { datetime: now }
                 });
                 return res.data.available_barbers.map(b => ({
@@ -173,7 +173,7 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                     created_at: '',
                     updated_at: ''
                 }));
-            } catch (e) {
+            } catch {
                 return [];
             }
         },
@@ -198,25 +198,27 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
         },
     });
 
-    const reviewMutation = useMutation({
-        mutationFn: async (data: ReviewFormValues) => {
-            await api.post('/api/reviews', {
+    const reviewMutation = useMutation<void, unknown, ReviewFormValues>({
+        mutationFn: async (values) => {
+            const payload: ReviewRequest = {
                 booking_id: booking.id,
-                ...data,
-            });
+                rating: values.rating,
+                comment: values.comment,
+            };
+            await api.post('/api/reviews', payload);
         },
         onSuccess: () => {
             toast.success('Terima kasih atas ulasan Anda!');
             setIsReviewOpen(false);
             // Invalidate queries if needed
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal mengirim ulasan');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, 'Gagal mengirim ulasan'));
         },
     });
 
     // Cancel Booking Mutation
-    const cancelMutation = useMutation({
+    const cancelMutation = useMutation<void, unknown, void>({
         mutationFn: async () => {
             await api.delete(`/api/bookings/${booking.id}`);
         },
@@ -225,13 +227,13 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
             setIsCancelOpen(false);
             queryClient.invalidateQueries({ queryKey: ['bookings'] });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Gagal membatalkan booking');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, 'Gagal membatalkan booking'));
         },
     });
 
     // Reschedule Booking Mutation
-    const rescheduleMutation = useMutation({
+    const rescheduleMutation = useMutation<void, unknown, void>({
         mutationFn: async () => {
             if (!rescheduleService || !rescheduleBarber || !rescheduleDate || !rescheduleTimeSlot) return;
 
@@ -245,7 +247,7 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
             }
 
             // Check availability
-            const availRes = await api.post<{ available: boolean }>('/api/bookings/check-availability', {
+            const availRes = await api.post<CheckAvailabilityResponse>('/api/bookings/check-availability', {
                 datetime: dateTime,
                 barber_id: rescheduleBarber.id,
                 service_duration: rescheduleService.duration_minutes,
@@ -256,19 +258,20 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
             }
 
             // Perform reschedule
-            await api.put(`/api/bookings/${booking.id}`, {
+            const payload: UpdateBookingRequest = {
                 service_id: rescheduleService.id,
                 barber_id: rescheduleBarber.id,
                 booking_datetime: dateTime,
-            });
+            };
+            await api.put(`/api/bookings/${booking.id}`, payload);
         },
         onSuccess: () => {
             toast.success('Booking berhasil direschedule!');
             setIsRescheduleOpen(false);
             queryClient.invalidateQueries({ queryKey: ['bookings'] });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal reschedule booking');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, 'Gagal reschedule booking'));
         },
     });
 

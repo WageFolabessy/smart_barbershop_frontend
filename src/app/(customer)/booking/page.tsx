@@ -14,9 +14,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency, getErrorMessage } from '@/lib/utils';
 import api from '@/lib/axios';
-import { Service, User, TimeSlot } from '@/types/api';
+import { Service, User, TimeSlot, CheckAvailabilityResponse, AvailableBarbersEnvelope, CreateBookingRequest } from '@/types/api';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export default function BookingPage() {
@@ -45,7 +45,7 @@ export default function BookingPage() {
             // This is a workaround since there is no public /users endpoint
             const now = new Date().toISOString();
             try {
-                const res = await api.get<{ available_barbers: { id: number | string, name: string }[] }>('/api/bookings/available-barbers', {
+                const res = await api.get<AvailableBarbersEnvelope>('/api/bookings/available-barbers', {
                     params: {
                         datetime: now
                     }
@@ -60,7 +60,7 @@ export default function BookingPage() {
                     created_at: '',
                     updated_at: ''
                 }));
-            } catch (e) {
+            } catch {
                 // Return empty array on error - UI will show empty state
                 return [];
             }
@@ -77,14 +77,14 @@ export default function BookingPage() {
     });
 
     // Check Availability Mutation
-    const checkAvailabilityMutation = useMutation({
+    const checkAvailabilityMutation = useMutation<CheckAvailabilityResponse, unknown, void>({
         mutationFn: async () => {
             if (!selectedService || !selectedBarber || !date || !selectedTimeSlot) return { available: false };
 
             const dateStr = format(date, 'yyyy-MM-dd');
             const dateTime = `${dateStr} ${selectedTimeSlot.start_time}:00`;
 
-            const res = await api.post<{ available: boolean }>('/api/bookings/check-availability', {
+            const res = await api.post<CheckAvailabilityResponse>('/api/bookings/check-availability', {
                 datetime: dateTime,
                 barber_id: selectedBarber.id,
                 service_duration: selectedService.duration_minutes,
@@ -92,13 +92,13 @@ export default function BookingPage() {
 
             return res.data;
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Gagal mengecek ketersediaan');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, 'Gagal mengecek ketersediaan'));
         },
     });
 
     // Create Booking Mutation
-    const createBookingMutation = useMutation({
+    const createBookingMutation = useMutation<void, unknown, void>({
         mutationFn: async () => {
             if (!selectedService || !selectedBarber || !date || !selectedTimeSlot) return;
 
@@ -113,22 +113,25 @@ export default function BookingPage() {
             const dateStr = format(date, 'yyyy-MM-dd');
             const dateTime = `${dateStr} ${selectedTimeSlot.start_time}:00`;
 
-            await api.post('/api/bookings', {
-                customer_id: user?.id,
+            const payload: CreateBookingRequest = {
+                customer_id: Number(user?.id),
                 service_id: selectedService.id,
                 barber_id: selectedBarber.id,
                 time_slot_id: selectedTimeSlot.id,
                 booking_datetime: dateTime,
-            });
+            };
+
+            await api.post('/api/bookings', payload);
         },
         onSuccess: () => {
             toast.success('Janji temu berhasil dibuat!');
             router.push('/riwayat');
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.message || error.message || 'Gagal membuat janji temu.');
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, 'Gagal membuat janji temu.'));
             // If availability check failed, go back to step 3
-            if (error.message?.includes('tidak tersedia')) {
+            const msg = getErrorMessage(error);
+            if (msg.includes('tidak tersedia')) {
                 setStep(3);
                 setSelectedTimeSlot(null);
             }

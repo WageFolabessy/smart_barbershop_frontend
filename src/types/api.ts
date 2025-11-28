@@ -229,3 +229,37 @@ export interface DashboardRecentBooking {
 export interface DashboardRecentBookingsEnvelope {
     recent_bookings: DashboardRecentBooking[];
 }
+
+// Booking Flow DTOs
+export interface CheckAvailabilityResponse {
+    available: boolean;
+}
+
+export interface CreateBookingRequest {
+    customer_id: number;
+    service_id: number;
+    barber_id: number;
+    time_slot_id: number;
+    booking_datetime: string; // 'YYYY-MM-DD HH:mm:ss'
+}
+
+export interface AvailableBarberRaw {
+    id: number | string;
+    name: string;
+}
+
+export interface AvailableBarbersEnvelope {
+    available_barbers: AvailableBarberRaw[];
+}
+
+export interface ReviewRequest {
+    booking_id: number;
+    rating: number;
+    comment?: string;
+}
+
+export interface UpdateBookingRequest {
+    service_id: number;
+    barber_id: number;
+    booking_datetime: string; // 'YYYY-MM-DD HH:mm:ss'
+}

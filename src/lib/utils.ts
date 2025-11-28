@@ -98,3 +98,16 @@ export function assetUrl(path?: string | null): string {
   return `${env.apiUrl}${clean}`;
 }
 
+// Safe error message extraction for unknown errors (Axios-like)
+interface HttpErrorLike {
+  response?: { data?: { message?: unknown } };
+  message?: unknown;
+}
+
+export function getErrorMessage(error: unknown, fallback = 'Terjadi kesalahan'): string {
+  if (typeof error === 'string') return error;
+  const e = error as HttpErrorLike;
+  const maybe = e?.response?.data?.message ?? e?.message;
+  return typeof maybe === 'string' ? maybe : fallback;
+}
+
