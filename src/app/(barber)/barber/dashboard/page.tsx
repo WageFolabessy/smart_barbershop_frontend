@@ -19,6 +19,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { assetUrl } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,13 +46,15 @@ export default function BarberDashboard() {
     const [deletingRecord, setDeletingRecord] = useState<any | null>(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-    // Fetch Bookings
+    // Fetch Bookings (only those belonging to this barber)
     const { data: bookings, isLoading: isLoadingBookings } = useQuery({
-        queryKey: ['barber-bookings'],
+        queryKey: ['barber-bookings', user?.id],
         queryFn: async () => {
             const res = await api.get<{ data: Booking[] }>('/api/bookings');
-            return res.data.data;
+            return res.data.data.filter(b => user?.role === 'barber' ? b.barber.id === user.id : true);
         },
+        enabled: !!user,
+        staleTime: 0,
     });
 
     // Fetch Hair Records
@@ -74,6 +77,20 @@ export default function BarberDashboard() {
         enabled: !!user?.id,
     });
 
+    // Booking status mutation
+    const statusMutation = useMutation({
+        mutationFn: async ({ bookingId, status }: { bookingId: number; status: 'pending' | 'confirmed' | 'completed' | 'cancelled' }) => {
+            await api.put(`/api/bookings/${bookingId}` , { status });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['barber-bookings', user?.id] });
+            toast.success('Status booking diperbarui');
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || error.message || 'Gagal memperbarui status');
+        }
+    });
+
     // Upload Mutation
     const uploadMutation = useMutation({
         mutationFn: async (formData: FormData) => {
@@ -85,8 +102,11 @@ export default function BarberDashboard() {
         },
         onSuccess: () => {
             toast.success('Hasil cukur berhasil diupload!');
+            // Only mark completed if booking already confirmed
+            if (selectedBooking && selectedBooking.status === 'confirmed') {
+                statusMutation.mutate({ bookingId: selectedBooking.id, status: 'completed' });
+            }
             setIsUploadOpen(false);
-            queryClient.invalidateQueries({ queryKey: ['barber-bookings'] });
             queryClient.invalidateQueries({ queryKey: ['hair-records'] });
         },
         onError: (error: any) => {
@@ -141,11 +161,20 @@ export default function BarberDashboard() {
     const handleUpload = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!selectedBooking) return;
+        if (!user || user.role !== 'barber') {
+            toast.error('Anda harus login sebagai barber untuk upload hasil.');
+            return;
+        }
+        if (selectedBooking.status === 'pending') {
+            toast.error('Konfirmasi booking terlebih dahulu sebelum upload hasil.');
+            return;
+        }
 
         const form = e.currentTarget;
         const formData = new FormData(form);
         formData.append('booking_id', selectedBooking.id.toString());
         formData.append('customer_id', selectedBooking.customer.id.toString());
+        formData.append('barber_id', user.id.toString());
 
         uploadMutation.mutate(formData);
     };
@@ -188,81 +217,96 @@ export default function BarberDashboard() {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {todayBookings.map((booking) => (
-                                        <div key={booking.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 border rounded-lg bg-card/50 gap-4">
-                                            {/* ... (Existing Booking Item UI) ... */}
-                                            <div className="flex items-center gap-4">
-                                                <div className="bg-primary/10 p-3 rounded-full text-primary font-bold text-lg w-16 h-16 flex items-center justify-center border border-primary/20">
-                                                    {format(new Date(booking.booking_datetime), 'HH:mm')}
+                                    {todayBookings.map((booking) => {
+                                        const statusLabel = booking.status === 'pending' ? 'Menunggu' : booking.status === 'confirmed' ? 'Terkonfirmasi' : booking.status === 'completed' ? 'Selesai' : booking.status;
+                                        const statusClass = booking.status === 'completed'
+                                            ? 'bg-green-500/10 text-green-500'
+                                            : booking.status === 'confirmed'
+                                                ? 'bg-blue-500/10 text-blue-500'
+                                                : 'bg-yellow-500/10 text-yellow-500';
+                                        return (
+                                            <div key={booking.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 border rounded-lg bg-card/50 gap-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="bg-primary/10 p-3 rounded-full text-primary font-bold text-lg w-16 h-16 flex items-center justify-center border border-primary/20">
+                                                        {format(new Date(booking.booking_datetime), 'HH:mm')}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-lg">{booking.customer.name}</h3>
+                                                        <p className="text-muted-foreground">{booking.service.name}</p>
+                                                        <div className="flex gap-2 mt-1">
+                                                            <Badge variant="outline" className={statusClass}>{statusLabel}</Badge>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h3 className="font-bold text-lg">{booking.customer.name}</h3>
-                                                    <p className="text-muted-foreground">{booking.service.name}</p>
-                                                    <div className="flex gap-2 mt-1">
-                                                        <Badge variant="outline" className={booking.status === 'completed' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}>
-                                                            {booking.status === 'completed' ? 'Selesai' : 'Menunggu'}
-                                                        </Badge>
+                                                <div className="flex flex-col gap-2 w-full md:w-auto">
+                                                    <div className="flex gap-2 flex-wrap">
+                                                        {booking.status === 'pending' && (
+                                                            <Button size="sm" variant="secondary" disabled={statusMutation.isPending} onClick={() => statusMutation.mutate({ bookingId: booking.id, status: 'confirmed' })}>
+                                                                {statusMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Konfirmasi'}
+                                                            </Button>
+                                                        )}
+                                                        {booking.status === 'confirmed' && (
+                                                            <Button size="sm" variant="default" disabled={statusMutation.isPending} onClick={() => statusMutation.mutate({ bookingId: booking.id, status: 'completed' })}>
+                                                                {statusMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Tandai Selesai'}
+                                                            </Button>
+                                                        )}
+                                                        {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                                                            <Dialog open={isUploadOpen && selectedBooking?.id === booking.id} onOpenChange={(open) => {
+                                                                setIsUploadOpen(open);
+                                                                if (open) setSelectedBooking(booking); else setSelectedBooking(null);
+                                                            }}>
+                                                                <DialogTrigger asChild>
+                                                                    <Button variant="outline" size="sm" className="gap-2">
+                                                                        <Camera className="h-4 w-4" /> Upload Hasil
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent className="sm:max-w-[500px]">
+                                                                    <DialogHeader>
+                                                                        <DialogTitle>Upload Hasil Cukur</DialogTitle>
+                                                                        <DialogDescription>Simpan foto sebelum dan sesudah untuk riwayat pelanggan.</DialogDescription>
+                                                                    </DialogHeader>
+                                                                    <form onSubmit={handleUpload} className="space-y-4">
+                                                                        <div className="grid grid-cols-2 gap-4">
+                                                                            <div className="space-y-2">
+                                                                                <Label htmlFor="before">Foto Before</Label>
+                                                                                <Input id="before" name="photo_before" type="file" accept="image/*" />
+                                                                            </div>
+                                                                            <div className="space-y-2">
+                                                                                <Label htmlFor="after">Foto After</Label>
+                                                                                <Input id="after" name="photo_after" type="file" accept="image/*" required />
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <Label htmlFor="hair_type">Jenis Rambut</Label>
+                                                                            <Input id="hair_type" name="hair_type" placeholder="Contoh: Ikal, Lurus, Berminyak" />
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <Label htmlFor="scalp_condition">Kondisi Kulit Kepala</Label>
+                                                                            <Input id="scalp_condition" name="scalp_condition" placeholder="Contoh: Kering, Berketombe, Normal" />
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <Label htmlFor="notes">Catatan Perawatan</Label>
+                                                                            <Textarea id="notes" name="treatment_notes" placeholder="Catatan teknis cukuran..." />
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <Label htmlFor="recommendations">Saran untuk Pelanggan</Label>
+                                                                            <Textarea id="recommendations" name="barber_recommendations" placeholder="Saran styling atau produk..." />
+                                                                        </div>
+                                                                        <DialogFooter>
+                                                                            <Button type="submit" disabled={uploadMutation.isPending}>
+                                                                                {uploadMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                                                {uploadMutation.isPending ? 'Menyimpan...' : 'Simpan'}
+                                                                            </Button>
+                                                                        </DialogFooter>
+                                                                    </form>
+                                                                </DialogContent>
+                                                            </Dialog>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <Dialog open={isUploadOpen && selectedBooking?.id === booking.id} onOpenChange={(open) => {
-                                                setIsUploadOpen(open);
-                                                if (open) setSelectedBooking(booking);
-                                                else setSelectedBooking(null);
-                                            }}>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="outline" className="gap-2">
-                                                        <Camera className="h-4 w-4" />
-                                                        Upload Hasil
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="sm:max-w-[500px]">
-                                                    {/* ... (Existing Upload Form) ... */}
-                                                    <DialogHeader>
-                                                        <DialogTitle>Upload Hasil Cukur</DialogTitle>
-                                                        <DialogDescription>
-                                                            Simpan foto sebelum dan sesudah untuk riwayat pelanggan.
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <form onSubmit={handleUpload} className="space-y-4">
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <Label htmlFor="before">Foto Before</Label>
-                                                                <Input id="before" name="photos[before]" type="file" accept="image/*" />
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <Label htmlFor="after">Foto After</Label>
-                                                                <Input id="after" name="photos[after]" type="file" accept="image/*" required />
-                                                            </div>
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="hair_type">Jenis Rambut</Label>
-                                                            <Input id="hair_type" name="hair_type" placeholder="Contoh: Ikal, Lurus, Berminyak" />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="scalp_condition">Kondisi Kulit Kepala</Label>
-                                                            <Input id="scalp_condition" name="scalp_condition" placeholder="Contoh: Kering, Berketombe, Normal" />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="notes">Catatan Perawatan</Label>
-                                                            <Textarea id="notes" name="treatment_notes" placeholder="Catatan teknis cukuran..." />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="recommendations">Saran untuk Pelanggan</Label>
-                                                            <Textarea id="recommendations" name="barber_recommendations" placeholder="Saran styling atau produk..." />
-                                                        </div>
-                                                        <DialogFooter>
-                                                            <Button type="submit" disabled={uploadMutation.isPending}>
-                                                                {uploadMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                                {uploadMutation.isPending ? 'Menyimpan...' : 'Simpan'}
-                                                            </Button>
-                                                        </DialogFooter>
-                                                    </form>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </CardContent>
@@ -288,12 +332,13 @@ export default function BarberDashboard() {
                                             <div className="aspect-video relative bg-muted">
                                                 {record.photos?.after ? (
                                                     <Image
-                                                        src={record.photos.after}
+                                                        src={assetUrl(record.photos.after)}
                                                         alt="Hair cut result - After"
                                                         fill
                                                         className="object-cover"
                                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                         loading="lazy"
+                                                        unoptimized
                                                     />
                                                 ) : (
                                                     <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
@@ -385,11 +430,11 @@ export default function BarberDashboard() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="edit-before">Foto Before (Opsional)</Label>
-                                <Input id="edit-before" name="photos[before]" type="file" accept="image/*" />
+                                <Input id="edit-before" name="photo_before" type="file" accept="image/*" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="edit-after">Foto After (Opsional)</Label>
-                                <Input id="edit-after" name="photos[after]" type="file" accept="image/*" />
+                                <Input id="edit-after" name="photo_after" type="file" accept="image/*" />
                             </div>
                         </div>
                         <div className="space-y-2">

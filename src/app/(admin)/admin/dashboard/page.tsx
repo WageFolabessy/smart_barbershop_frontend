@@ -14,43 +14,43 @@ import { Booking } from '@/types/api';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function AdminDashboard() {
-    const { data: overview } = useQuery({
+    const { data: overview, isLoading: loadingOverview, isError: errorOverview } = useQuery({
         queryKey: ['admin-overview'],
         queryFn: async () => {
             const res = await api.get('/api/admin/dashboard/overview');
-            return res.data;
+            return res.data?.data ?? res.data ?? {};
         },
     });
 
-    const { data: revenue } = useQuery({
+    const { data: revenueRaw, isLoading: loadingRevenue, isError: errorRevenue } = useQuery({
         queryKey: ['admin-revenue'],
         queryFn: async () => {
             const res = await api.get('/api/admin/dashboard/revenue');
-            return res.data.data;
+            return res.data?.data ?? res.data?.revenue ?? res.data ?? [];
         },
     });
 
-    const { data: popularServices } = useQuery({
+    const { data: popularServicesRaw, isLoading: loadingPopular, isError: errorPopular } = useQuery({
         queryKey: ['admin-popular-services'],
         queryFn: async () => {
             const res = await api.get('/api/admin/dashboard/popular-services');
-            return res.data.data;
+            return res.data?.data ?? res.data ?? [];
         },
     });
 
-    const { data: recentBookings } = useQuery({
+    const { data: recentBookings, isLoading: loadingRecent, isError: errorRecent } = useQuery({
         queryKey: ['admin-recent-bookings'],
         queryFn: async () => {
-            const res = await api.get<{ data: Booking[] }>('/api/admin/dashboard/recent-bookings');
-            return res.data.data;
+            const res = await api.get('/api/admin/dashboard/recent-bookings');
+            return res.data?.data ?? res.data ?? [];
         },
     });
 
-    const { data: barberPerformance } = useQuery({
+    const { data: barberPerformanceRaw, isLoading: loadingPerformance, isError: errorPerformance } = useQuery({
         queryKey: ['admin-barber-performance'],
         queryFn: async () => {
             const res = await api.get('/api/admin/dashboard/barber-performance');
-            return res.data.data;
+            return res.data?.data ?? res.data ?? [];
         },
     });
 
@@ -60,8 +60,34 @@ export default function AdminDashboard() {
         { name: 'Apr', total: 0 }, { name: 'May', total: 0 }, { name: 'Jun', total: 0 },
     ];
 
-    const chartData = Array.isArray(revenue) && revenue.length > 0 ? revenue : mockRevenueData;
-    const topService = Array.isArray(popularServices) && popularServices.length > 0 ? popularServices[0] : null;
+    const revenue = (Array.isArray(revenueRaw) ? revenueRaw : []).map((item: any, idx: number) => ({
+        name: item?.name ?? item?.month ?? item?.label ?? `#${idx + 1}`,
+        total: item?.total ?? item?.amount ?? item?.value ?? 0,
+    }));
+    const chartData = revenue.length > 0 ? revenue : mockRevenueData;
+    const popularServices = (Array.isArray(popularServicesRaw) ? popularServicesRaw : []).map((item: any) => ({
+        name: item?.name ?? item?.service_name ?? '-',
+        count: item?.count ?? item?.total ?? 0,
+    }));
+    const topService = popularServices.length > 0 ? popularServices.reduce((max, cur) => (cur.count > max.count ? cur : max), popularServices[0]) : null;
+    const barberPerformance = (Array.isArray(barberPerformanceRaw) ? barberPerformanceRaw : []).map((item: any) => ({
+        name: item?.name ?? item?.barber_name ?? '-',
+        bookings_count: item?.bookings_count ?? item?.count ?? 0,
+    }));
+
+    const safeNumber = (val: any, fallback = 0): number => {
+        if (typeof val === 'number') return val;
+        if (val && typeof val === 'object') {
+            if (typeof val.all === 'number') return val.all;
+            const sum = Object.values(val).reduce((acc: number, v: any) => acc + (typeof v === 'number' ? v : 0), 0);
+            if (sum > 0) return sum;
+        }
+        return fallback;
+    };
+
+    const totalRevenue = safeNumber((overview as any)?.total_revenue, 0);
+    const totalBookings = safeNumber((overview as any)?.total_bookings, 0);
+    const activeUsers = safeNumber((overview as any)?.active_users, 0);
 
     return (
         <div className="space-y-6">
@@ -77,7 +103,7 @@ export default function AdminDashboard() {
                         <CreditCard className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(overview?.total_revenue || 0)}</div>
+                        <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
                         <p className="text-xs text-muted-foreground">Total pendapatan keseluruhan</p>
                     </CardContent>
                 </Card>
@@ -87,7 +113,7 @@ export default function AdminDashboard() {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{overview?.total_bookings || 0}</div>
+                        <div className="text-2xl font-bold">{totalBookings}</div>
                         <p className="text-xs text-muted-foreground">Booking bulan ini</p>
                     </CardContent>
                 </Card>
@@ -97,7 +123,7 @@ export default function AdminDashboard() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{overview?.active_users || 0}</div>
+                        <div className="text-2xl font-bold">{activeUsers}</div>
                         <p className="text-xs text-muted-foreground">Total pelanggan terdaftar</p>
                     </CardContent>
                 </Card>
@@ -152,7 +178,7 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-8">
-                            {(Array.isArray(recentBookings) ? recentBookings : []).map((booking) => (
+                            {(Array.isArray(recentBookings) ? recentBookings : []).map((booking: Booking) => (
                                 <div key={booking.id} className="flex items-center">
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium leading-none">{booking.customer.name}</p>

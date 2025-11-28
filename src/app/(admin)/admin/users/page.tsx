@@ -105,12 +105,26 @@ export default function UsersPage() {
     });
 
     // Fetch Users
-    const { data: users, isLoading } = useQuery({
+    const { data: users, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['users'],
         queryFn: async () => {
-            const res = await api.get<{ data: User[] }>('/api/admin/users');
-            return res.data.data;
+            const res = await api.get('/api/admin/users');
+            const topData = res.data?.data;
+            const nestedData = topData?.data;
+            const byUsersKey = res.data?.users;
+            const list: unknown = Array.isArray(topData)
+                ? topData
+                : Array.isArray(nestedData)
+                    ? nestedData
+                    : Array.isArray(byUsersKey)
+                        ? byUsersKey
+                        : [];
+            return list as User[];
         },
+        staleTime: 0,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
+        refetchOnWindowFocus: false,
     });
 
     // Create User Mutation
@@ -255,6 +269,12 @@ export default function UsersPage() {
                     {isLoading ? (
                         <div className="flex justify-center py-8">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : isError ? (
+                        <div className="text-center py-8">
+                            <p className="text-red-600">Gagal memuat pengguna.</p>
+                            <p className="text-muted-foreground text-sm mt-1">{(error as any)?.response?.data?.message || (error as Error)?.message || 'Terjadi kesalahan tak terduga.'}</p>
+                            <Button variant="outline" className="mt-3" onClick={() => refetch()}>Coba Lagi</Button>
                         </div>
                     ) : (
                         <Table>

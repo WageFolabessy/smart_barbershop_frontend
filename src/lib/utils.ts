@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { env } from './env'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -84,5 +85,16 @@ export function debounce<T extends (...args: any[]) => any>(
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
+}
+
+/**
+ * Build absolute asset URL for images coming from backend (Laravel storage)
+ * Accepts absolute URLs and returns as-is; prefixes relative paths with API base URL.
+ */
+export function assetUrl(path?: string | null): string {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  return `${env.apiUrl}${clean}`;
 }
 

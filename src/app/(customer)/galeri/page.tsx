@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import { HairRecord } from '@/types/api';
+import { assetUrl } from '@/lib/utils';
 
 export default function GalleryPage() {
     const { data: records, isLoading } = useQuery({
@@ -49,17 +50,18 @@ export default function GalleryPage() {
                         </CardHeader>
                         <CardContent className="p-4 pt-2 space-y-4">
                             <div className="grid grid-cols-2 gap-2">
-                                {record.photos.before && (
+                                                {record.photos?.before && (
                                     <Dialog>
                                         <DialogTrigger asChild>
                                             <div className="aspect-square relative rounded-md overflow-hidden cursor-pointer bg-muted">
                                                 <Image
-                                                    src={record.photos.before}
+                                                    src={assetUrl(record.photos.before)}
                                                     alt="Hair cut before transformation"
                                                     fill
                                                     className="object-cover hover:scale-105 transition-transform duration-300"
                                                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                                                     loading="lazy"
+                                                    unoptimized
                                                 />
                                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-1 text-center">
                                                     Before
@@ -67,7 +69,7 @@ export default function GalleryPage() {
                                             </div>
                                         </DialogTrigger>
                                         <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black">
-                                            <Image src={record.photos.before} alt="Before transformation - full view" width={1200} height={1200} className="w-full h-auto" />
+                                            <Image src={assetUrl(record.photos.before)} alt="Before transformation - full view" width={1200} height={1200} className="w-full h-auto" unoptimized />
                                         </DialogContent>
                                     </Dialog>
                                 )}
@@ -76,12 +78,13 @@ export default function GalleryPage() {
                                         <DialogTrigger asChild>
                                             <div className="aspect-square relative rounded-md overflow-hidden cursor-pointer bg-muted">
                                                 <Image
-                                                    src={record.photos.after}
+                                                    src={assetUrl(record.photos.after)}
                                                     alt="Hair cut after transformation"
                                                     fill
                                                     className="object-cover hover:scale-105 transition-transform duration-300"
                                                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                                                     loading="lazy"
+                                                    unoptimized
                                                 />
                                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-1 text-center">
                                                     After
@@ -89,7 +92,7 @@ export default function GalleryPage() {
                                             </div>
                                         </DialogTrigger>
                                         <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black">
-                                            <Image src={record.photos.after} alt="After transformation - full view" width={1200} height={1200} className="w-full h-auto" />
+                                            <Image src={assetUrl(record.photos.after)} alt="After transformation - full view" width={1200} height={1200} className="w-full h-auto" unoptimized />
                                         </DialogContent>
                                     </Dialog>
                                 )}

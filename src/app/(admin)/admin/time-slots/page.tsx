@@ -5,11 +5,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Pencil, Trash2, Loader2, Clock } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Clock, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -68,6 +68,7 @@ export default function TimeSlotsPage() {
     const queryClient = useQueryClient();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Fetch Time Slots
     const { data: timeSlots, isLoading } = useQuery({
@@ -324,6 +325,20 @@ export default function TimeSlotsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Daftar Slot Waktu</CardTitle>
+                    <CardDescription>
+                        Total {timeSlots?.length || 0} slot waktu terdaftar.
+                    </CardDescription>
+                    <div className="pt-4">
+                        <div className="relative">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Cari hari, label, atau jam..."
+                                className="pl-8"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
@@ -341,7 +356,16 @@ export default function TimeSlotsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {timeSlots?.map((slot) => (
+                                {(Array.isArray(timeSlots) ? timeSlots.filter(slot => {
+                                    const dayLabel = DAYS.find(d => d.value === slot.day_of_week)?.label || slot.day_of_week;
+                                    const term = searchQuery.toLowerCase();
+                                    return (
+                                        dayLabel.toLowerCase().includes(term) ||
+                                        (slot.label || '').toLowerCase().includes(term) ||
+                                        slot.start_time.substring(0,5).includes(term) ||
+                                        slot.end_time.substring(0,5).includes(term)
+                                    );
+                                }) : []).map((slot) => (
                                     <TableRow key={slot.id}>
                                         <TableCell className="font-medium">
                                             {DAYS.find(d => d.value === slot.day_of_week)?.label || slot.day_of_week}
@@ -385,6 +409,22 @@ export default function TimeSlotsPage() {
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                                             Belum ada slot waktu yang dibuat.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {(!isLoading && Array.isArray(timeSlots) && timeSlots.length > 0 && (timeSlots.filter(slot => {
+                                    const dayLabel = DAYS.find(d => d.value === slot.day_of_week)?.label || slot.day_of_week;
+                                    const term = searchQuery.toLowerCase();
+                                    return (
+                                        dayLabel.toLowerCase().includes(term) ||
+                                        (slot.label || '').toLowerCase().includes(term) ||
+                                        slot.start_time.substring(0,5).includes(term) ||
+                                        slot.end_time.substring(0,5).includes(term)
+                                    );
+                                }).length === 0)) && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                            Tidak ada slot waktu yang cocok dengan pencarian.
                                         </TableCell>
                                     </TableRow>
                                 )}

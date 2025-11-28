@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, MoreHorizontal, Plus, Pencil, Trash } from 'lucide-react';
+import { Loader2, MoreHorizontal, Plus, Pencil, Trash, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -20,6 +20,7 @@ export default function ServicesPage() {
     const queryClient = useQueryClient();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingService, setEditingService] = useState<Service | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Fetch Services
     const { data: services, isLoading } = useQuery({
@@ -74,6 +75,11 @@ export default function ServicesPage() {
         saveMutation.mutate(data);
     };
 
+    const filteredServices = Array.isArray(services) ? services.filter(s =>
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (s.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    ) : [];
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -125,6 +131,23 @@ export default function ServicesPage() {
             </div>
 
             <Card>
+                <CardHeader>
+                    <CardTitle>Daftar Layanan</CardTitle>
+                    <CardDescription>
+                        Total {services?.length || 0} layanan terdaftar.
+                    </CardDescription>
+                    <div className="pt-4">
+                        <div className="relative">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Cari nama atau deskripsi..."
+                                className="pl-8"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </CardHeader>
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
@@ -133,7 +156,7 @@ export default function ServicesPage() {
                                 <TableHead>Deskripsi</TableHead>
                                 <TableHead>Harga</TableHead>
                                 <TableHead>Durasi</TableHead>
-                                <TableHead className="w-[100px]">Aksi</TableHead>
+                                    <TableHead className="w-[100px]">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -143,7 +166,7 @@ export default function ServicesPage() {
                                         <Loader2 className="animate-spin h-6 w-6 mx-auto text-primary" />
                                     </TableCell>
                                 </TableRow>
-                            ) : services?.map((service) => (
+                            ) : filteredServices.map((service) => (
                                 <TableRow key={service.id}>
                                     <TableCell className="font-medium">{service.name}</TableCell>
                                     <TableCell>{service.description}</TableCell>
@@ -175,6 +198,13 @@ export default function ServicesPage() {
                                     </TableCell>
                                 </TableRow>
                             ))}
+                            {(!isLoading && filteredServices.length === 0) && (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                        Tidak ada layanan yang cocok dengan pencarian.
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>
