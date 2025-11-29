@@ -7,7 +7,7 @@ import { ImageIcon, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import { HairRecord } from '@/types/api';
 import { assetUrl } from '@/lib/utils';
@@ -33,7 +33,7 @@ export default function GalleryPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {records?.map((record) => (
+                {records?.map((record, idx) => (
                     <Card key={record.id} className="overflow-hidden group hover:border-primary transition-colors">
                         <CardHeader className="p-4 pb-2">
                             <div className="flex justify-between items-start">
@@ -60,7 +60,8 @@ export default function GalleryPage() {
                                                     fill
                                                     className="object-cover hover:scale-105 transition-transform duration-300"
                                                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                                                    loading="lazy"
+                                                    loading={idx < 6 ? 'eager' : 'lazy'}
+                                                    priority={idx < 6}
                                                     unoptimized
                                                 />
                                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-1 text-center">
@@ -69,7 +70,11 @@ export default function GalleryPage() {
                                             </div>
                                         </DialogTrigger>
                                         <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black">
-                                            <Image src={assetUrl(record.photos.before)} alt="Before transformation - full view" width={1200} height={1200} className="w-full h-auto" unoptimized />
+                                            <DialogHeader className="sr-only">
+                                                <DialogTitle>Foto Sebelum</DialogTitle>
+                                                <DialogDescription>Pratinjau ukuran penuh gambar sebelum perubahan gaya rambut.</DialogDescription>
+                                            </DialogHeader>
+                                            <Image src={assetUrl(record.photos.before)} alt="Before transformation - full view" width={1200} height={1200} className="w-full h-auto" loading="lazy" unoptimized />
                                         </DialogContent>
                                     </Dialog>
                                 )}
@@ -83,7 +88,8 @@ export default function GalleryPage() {
                                                     fill
                                                     className="object-cover hover:scale-105 transition-transform duration-300"
                                                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                                                    loading="lazy"
+                                                    loading={idx < 6 ? 'eager' : 'lazy'}
+                                                    priority={idx < 6}
                                                     unoptimized
                                                 />
                                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-1 text-center">
@@ -92,7 +98,11 @@ export default function GalleryPage() {
                                             </div>
                                         </DialogTrigger>
                                         <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black">
-                                            <Image src={assetUrl(record.photos.after)} alt="After transformation - full view" width={1200} height={1200} className="w-full h-auto" unoptimized />
+                                            <DialogHeader className="sr-only">
+                                                <DialogTitle>Foto Sesudah</DialogTitle>
+                                                <DialogDescription>Pratinjau ukuran penuh gambar setelah perubahan gaya rambut.</DialogDescription>
+                                            </DialogHeader>
+                                            <Image src={assetUrl(record.photos.after)} alt="After transformation - full view" width={1200} height={1200} className="w-full h-auto" loading="lazy" unoptimized />
                                         </DialogContent>
                                     </Dialog>
                                 )}

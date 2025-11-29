@@ -109,17 +109,18 @@ export default function BarberRecordsPage() {
             <div className="text-center py-12 text-muted-foreground">Belum ada data riwayat cukur.</div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {hairRecords.map((record) => (
+              {hairRecords.map((record, idx) => (
                 <Card key={record.id} className="overflow-hidden">
                   <div className="aspect-video relative bg-muted">
                     {record.photos?.after ? (
                       <Image
                         src={assetUrl(record.photos.after)}
-                        alt="Hair cut result - After"
+                        alt={`Hasil cukur setelah${record.hair_type ? ` - ${record.hair_type}` : ''} (${format(new Date(record.created_at), 'd MMM yyyy', { locale: id })})`}
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        loading="lazy"
+                        loading={idx < 3 ? 'eager' : 'lazy'}
+                        priority={idx < 3}
                         unoptimized
                       />
                     ) : (
