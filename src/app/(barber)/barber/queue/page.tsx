@@ -189,7 +189,7 @@ export default function BarberQueuePage() {
                             {statusMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Tandai Selesai"}
                           </Button>
                         )}
-                        {(booking.status === "pending" || booking.status === "confirmed") && (
+                        {booking.status === "confirmed" && (
                           <Dialog
                             open={isUploadOpen && selectedBooking?.id === booking.id}
                             onOpenChange={(open) => {
