@@ -34,7 +34,7 @@ export default function CustomerNav() {
     ];
 
     return (
-        <nav className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <nav className="border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50">
             <div className="w-full px-4 md:px-8">
                 <div className="relative flex h-16 items-center justify-between">
                     {/* Logo - Left */}
@@ -67,7 +67,7 @@ export default function CustomerNav() {
                     <div className="flex items-center gap-2 md:gap-3 ml-auto">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <User className="h-4 w-4" />
-                            <span className="max-w-[80px] sm:max-w-[120px] md:max-w-none truncate">{user?.name}</span>
+                            <span className="max-w-20 sm:max-w-[120px] md:max-w-none truncate">{user?.name}</span>
                         </div>
                         <Button
                             variant="ghost"
