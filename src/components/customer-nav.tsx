@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { CalendarPlus, History, Images, LogOut, Menu } from 'lucide-react';
@@ -9,6 +10,13 @@ import api from '@/lib/axios';
 import Cookies from 'js-cookie';
 import { AUTH_COOKIE_NAMES, ROUTES } from '@/lib/constants';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
+function ClientOnly({ children }: { children: React.ReactNode }) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+    if (!mounted) return null;
+    return children as React.ReactElement;
+}
 
 export default function CustomerNav() {
     const pathname = usePathname();
@@ -65,26 +73,28 @@ export default function CustomerNav() {
 
                     {/* Right: Mobile menu + user */}
                     <div className="flex items-center gap-2 md:gap-3 ml-auto">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Buka menu">
-                                    <Menu className="h-5 w-5" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                                {navItems.map((item) => {
-                                    const Icon = item.icon;
-                                    return (
-                                        <DropdownMenuItem key={item.href} asChild>
-                                            <Link href={item.href} className={`flex items-center gap-2 ${isActive(item.match) ? 'text-primary' : ''}`}>
-                                                <Icon className="h-4 w-4" />
-                                                <span>{item.label}</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    );
-                                })}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <ClientOnly>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="md:hidden" aria-label="Buka menu">
+                                        <Menu className="h-5 w-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56">
+                                    {navItems.map((item) => {
+                                        const Icon = item.icon;
+                                        return (
+                                            <DropdownMenuItem key={item.href} asChild>
+                                                <Link href={item.href} className={`flex items-center gap-2 ${isActive(item.match) ? 'text-primary' : ''}`}>
+                                                    <Icon className="h-4 w-4" />
+                                                    <span>{item.label}</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        );
+                                    })}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </ClientOnly>
                         <Button
                             variant="ghost"
                             size="sm"

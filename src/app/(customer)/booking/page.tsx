@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Clock, Scissors, User as UserIcon, CheckCircle2, Loader2 } from 'lucide-react';
@@ -20,6 +20,7 @@ import { Service, User, TimeSlot, CheckAvailabilityResponse, AvailableBarbersEnv
 import { useAuthStore } from '@/store/useAuthStore';
 
 export default function BookingPage() {
+    const queryClient = useQueryClient();
     const router = useRouter();
     const user = useAuthStore((state) => state.user);
     const [step, setStep] = useState(1);
@@ -131,6 +132,8 @@ export default function BookingPage() {
         },
         onSuccess: () => {
             toast.success('Janji temu berhasil dibuat!');
+            // Pastikan data riwayat segar setelah redirect
+            queryClient.invalidateQueries({ queryKey: ['bookings'] });
             router.push('/riwayat');
         },
         onError: (error: unknown) => {
