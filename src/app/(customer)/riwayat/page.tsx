@@ -307,7 +307,7 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                                 <span className="text-[11px] md:text-xs text-muted-foreground">ID #{booking.id}</span>
                             </div>
                             <h3 className="text-lg md:text-xl font-semibold leading-tight tracking-tight">
-                                {booking.service.name}
+                                {booking.service?.name || 'Layanan'}
                             </h3>
                         </div>
 
@@ -320,7 +320,7 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                                 </div>
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                     <User className="h-4 w-4" />
-                                    <span>{booking.barber.name}</span>
+                                    <span>{booking.barber?.name || 'Tanpa kapster'}</span>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-3 w-full md:w-56">
