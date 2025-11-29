@@ -193,9 +193,17 @@ export default function BarberQueuePage() {
                           <Dialog
                             open={isUploadOpen && selectedBooking?.id === booking.id}
                             onOpenChange={(open) => {
-                              setIsUploadOpen(open);
-                              if (open) setSelectedBooking(booking);
-                              else setSelectedBooking(null);
+                              if (open) {
+                                if (booking.status !== "confirmed") {
+                                  toast.error("Upload hanya tersedia setelah booking terkonfirmasi.");
+                                  return;
+                                }
+                                setSelectedBooking(booking);
+                                setIsUploadOpen(true);
+                              } else {
+                                setIsUploadOpen(false);
+                                setSelectedBooking(null);
+                              }
                             }}
                           >
                             <DialogTrigger asChild>
