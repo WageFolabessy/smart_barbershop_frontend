@@ -42,7 +42,7 @@ export default function CustomerNav() {
                     {/* Logo - Left */}
                     <div className="flex items-center gap-2">
                         <Link href="/booking" className="text-lg md:text-xl font-bold text-primary tracking-tight">
-                            Smart Barbershop
+                            Smart Barbershop <span className="text-xs text-muted-foreground font-normal">Pelanggan</span>
                         </Link>
                     </div>
 

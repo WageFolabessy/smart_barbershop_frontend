@@ -501,27 +501,61 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                         {rescheduleDate && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Pilih Waktu</label>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-3 gap-3">
                                     {timeSlots?.map((slot) => (
-                                        <button
+                                        <Button
                                             key={slot.id}
-                                            type="button"
-                                            onClick={() => setRescheduleTimeSlot(slot)}
+                                            variant={rescheduleTimeSlot?.id === slot.id ? "default" : "outline"}
                                             className={cn(
-                                                "p-3 border rounded-lg text-center transition-colors",
-                                                rescheduleTimeSlot?.id === slot.id
-                                                    ? "bg-primary text-primary-foreground border-primary"
-                                                    : "hover:bg-accent hover:text-accent-foreground"
+                                                "relative h-auto py-3 flex flex-col gap-1",
+                                                slot.is_peak_hour && "border-primary/50"
                                             )}
+                                            onClick={() => setRescheduleTimeSlot(slot)}
+                                            aria-label={`Pilih slot waktu ${slot.start_time?.substring(0,5)}${slot.label ? `, ${slot.label}` : ''}`}
+                                            disabled={!slot.is_active}
+                                            title={!slot.is_active ? 'Slot tidak aktif' : undefined}
                                         >
-                                            <div className="text-sm font-medium">{slot.start_time}</div>
-                                            <div className="text-xs opacity-70">{slot.end_time}</div>
-                                        </button>
+                                            <span className="font-bold">{slot.start_time?.substring(0, 5) || 'N/A'}</span>
+                                            {slot.label && (
+                                                <Badge
+                                                    variant="secondary"
+                                                    className={cn(
+                                                        "text-[10px] px-1.5 h-auto py-0.5 w-[90px] overflow-hidden relative",
+                                                        slot.is_peak_hour
+                                                            ? "bg-primary/20 text-primary hover:bg-primary/30"
+                                                            : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                                                    )}
+                                                    title={slot.label}
+                                                >
+                                                    <span
+                                                        className={cn(
+                                                            "inline-block whitespace-nowrap",
+                                                            slot.label.length > 12 && "animate-marquee"
+                                                        )}
+                                                    >
+                                                        {slot.label}
+                                                    </span>
+                                                </Badge>
+                                            )}
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
                         )}
                     </div>
+                    {rescheduleService && rescheduleTimeSlot && (
+                        <div className="rounded-md border p-3 flex items-center justify-between text-sm">
+                            <div className="text-muted-foreground">Total Estimasi</div>
+                            <div className="text-right">
+                                <div className="font-bold text-primary">
+                                    {formatCurrency(rescheduleService.base_price * rescheduleTimeSlot.price_multiplier)}
+                                    <span className="ml-2 text-xs text-muted-foreground">
+                                        ({formatCurrency(rescheduleService.base_price)} × {rescheduleTimeSlot.price_multiplier}x)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsRescheduleOpen(false)}>
                             Batal
