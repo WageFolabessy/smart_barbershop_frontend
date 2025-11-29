@@ -2,18 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { CalendarPlus, History, Images, LogOut, User } from 'lucide-react';
+import { CalendarPlus, History, Images, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/axios';
 import Cookies from 'js-cookie';
 import { AUTH_COOKIE_NAMES, ROUTES } from '@/lib/constants';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function CustomerNav() {
     const pathname = usePathname();
     const router = useRouter();
     const logout = useAuthStore((state) => state.logout);
-    const user = useAuthStore((state) => state.user);
 
     const handleLogout = async () => {
         try {
@@ -28,10 +28,12 @@ export default function CustomerNav() {
     };
 
     const navItems = [
-        { href: '/booking', label: 'Buat Janji', icon: CalendarPlus },
-        { href: '/riwayat', label: 'Riwayat', icon: History },
-        { href: '/galeri', label: 'Galeri', icon: Images },
+        { href: '/booking', label: 'Buat Janji', icon: CalendarPlus, match: '/booking' },
+        { href: '/riwayat', label: 'Riwayat', icon: History, match: '/riwayat' },
+        { href: '/galeri', label: 'Galeri', icon: Images, match: '/galeri' },
     ];
+
+    const isActive = (match: string) => pathname === match;
 
     return (
         <nav className="border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50">
@@ -48,13 +50,11 @@ export default function CustomerNav() {
                     <div className="hidden md:flex items-center gap-6 absolute left-1/2 transform -translate-x-1/2">
                         {navItems.map((item) => {
                             const Icon = item.icon;
-                            const isActive = pathname === item.href;
                             return (
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive ? 'text-primary' : 'text-muted-foreground'
-                                        }`}
+                                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive(item.match) ? 'text-primary' : 'text-muted-foreground'}`}
                                 >
                                     <Icon className="h-4 w-4" />
                                     {item.label}
@@ -63,12 +63,28 @@ export default function CustomerNav() {
                         })}
                     </div>
 
-                    {/* User Info & Logout - Right */}
+                    {/* Right: Mobile menu + user */}
                     <div className="flex items-center gap-2 md:gap-3 ml-auto">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <User className="h-4 w-4" />
-                            <span className="max-w-20 sm:max-w-[120px] md:max-w-none truncate">{user?.name}</span>
-                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Buka menu">
+                                    <Menu className="h-5 w-5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                {navItems.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <DropdownMenuItem key={item.href} asChild>
+                                            <Link href={item.href} className={`flex items-center gap-2 ${isActive(item.match) ? 'text-primary' : ''}`}>
+                                                <Icon className="h-4 w-4" />
+                                                <span>{item.label}</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    );
+                                })}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -81,21 +97,18 @@ export default function CustomerNav() {
                     </div>
                 </div>
             </div>
-
-            {/* Mobile Nav (Bottom Bar) */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border/40 bg-background/95 backdrop-blur p-2 flex justify-around z-50">
+            {/* Mobile inline nav */}
+            <div className="md:hidden flex gap-4 pb-2 overflow-x-auto scrollbar-hide -mt-2 px-4">
                 {navItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = pathname === item.href;
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'
-                                }`}
+                            className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap border transition-colors ${isActive(item.match) ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted-foreground hover:text-primary'}`}
                         >
-                            <Icon className="h-5 w-5" />
-                            <span className="text-[10px]">{item.label}</span>
+                            <Icon className="h-3.5 w-3.5" />
+                            {item.label}
                         </Link>
                     );
                 })}
