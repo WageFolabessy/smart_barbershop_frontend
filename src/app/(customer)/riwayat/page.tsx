@@ -463,7 +463,8 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                                 selected={rescheduleDate}
                                 onSelect={setRescheduleDate}
                                 defaultMonth={rescheduleDate || new Date()}
-                                fromDate={new Date()}
+                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                className="rounded-md border bg-card"
                                 locale={id}
                             />
                         </div>
@@ -476,13 +477,13 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                                         Tidak ada slot untuk hari ini. Silakan pilih hari lain.
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                                         {filteredRescheduleSlots.map((slot) => (
                                             <Button
                                                 key={slot.id}
                                                 variant={rescheduleTimeSlot?.id === slot.id ? "default" : "outline"}
                                                 className={cn(
-                                                    "relative h-auto py-3 flex flex-col gap-1",
+                                                    "relative h-auto py-2 md:py-3 flex flex-col gap-1",
                                                     slot.is_peak_hour && "border-primary/50"
                                                 )}
                                                 onClick={() => setRescheduleTimeSlot(slot)}
@@ -495,7 +496,7 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                                                     <Badge
                                                         variant="secondary"
                                                         className={cn(
-                                                            "text-[10px] px-1.5 h-auto py-0.5 w-[90px] overflow-hidden relative",
+                                                            "text-[10px] px-1.5 h-auto py-0.5 max-w-[88px] overflow-hidden relative",
                                                             slot.is_peak_hour
                                                                 ? "bg-primary/20 text-primary hover:bg-primary/30"
                                                                 : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
