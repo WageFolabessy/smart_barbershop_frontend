@@ -28,6 +28,12 @@ export default function BookingPage() {
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
 
+    const getDayKey = (d?: Date) => {
+        const dayIndex = d ? d.getDay() : new Date().getDay(); // 0=Sun
+        const keys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'] as const;
+        return keys[dayIndex];
+    };
+
     // Fetch Services
     const { data: services, isLoading: isLoadingServices } = useQuery({
         queryKey: ['services'],
@@ -265,45 +271,60 @@ export default function BookingPage() {
                             {isLoadingTimeSlots ? (
                                 <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                             ) : (
-                                <div className="grid grid-cols-3 gap-3">
-                                    {timeSlots?.map((slot) => (
-                                        <Button
-                                            key={slot.id}
-                                            variant={selectedTimeSlot?.id === slot.id ? "default" : "outline"}
-                                            className={cn(
-                                                "relative h-auto py-3 flex flex-col gap-1",
-                                                slot.is_peak_hour && "border-primary/50"
-                                            )}
-                                            onClick={() => setSelectedTimeSlot(slot)}
-                                        >
-                                            <span className="font-bold">{slot.start_time?.substring(0, 5) || 'N/A'}</span>
-                                            {slot.label && (
-                                                <Badge
-                                                    variant="secondary"
-                                                    className={cn(
-                                                        "text-[10px] px-1.5 h-auto py-0.5 w-[90px] overflow-hidden relative",
-                                                        slot.is_peak_hour
-                                                            ? "bg-primary/20 text-primary hover:bg-primary/30"
-                                                            : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                                                    )}
-                                                    title={slot.label}
-                                                >
-                                                    <span
+                                <div>
+                                    {(() => {
+                                        const slotsForDay = (timeSlots || []).filter((s) => s.day_of_week === getDayKey(date));
+                                        const sorted = slotsForDay.sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+                                        if (sorted.length === 0) {
+                                            return (
+                                                <div className="flex items-center justify-center h-24 border rounded-md text-muted-foreground">
+                                                    Tidak ada slot untuk hari ini. Silakan pilih hari lain.
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {sorted.map((slot) => (
+                                                    <Button
+                                                        key={slot.id}
+                                                        variant={selectedTimeSlot?.id === slot.id ? "default" : "outline"}
                                                         className={cn(
-                                                            "inline-block whitespace-nowrap",
-                                                            slot.label.length > 12 && "animate-marquee"
+                                                            "relative h-auto py-3 flex flex-col gap-1",
+                                                            slot.is_peak_hour && "border-primary/50"
                                                         )}
+                                                        onClick={() => setSelectedTimeSlot(slot)}
                                                     >
-                                                        {slot.label}
-                                                    </span>
-                                                </Badge>
-                                            )}
-                                        </Button>
-                                    ))}
+                                                        <span className="font-bold">{slot.start_time?.substring(0, 5) || 'N/A'}</span>
+                                                        {slot.label && (
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className={cn(
+                                                                    "text-[10px] px-1.5 h-auto py-0.5 w-[90px] overflow-hidden relative",
+                                                                    slot.is_peak_hour
+                                                                        ? "bg-primary/20 text-primary hover:bg-primary/30"
+                                                                        : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                                                                )}
+                                                                title={slot.label}
+                                                            >
+                                                                <span
+                                                                    className={cn(
+                                                                        "inline-block whitespace-nowrap",
+                                                                        slot.label.length > 12 && "animate-marquee"
+                                                                    )}
+                                                                >
+                                                                    {slot.label}
+                                                                </span>
+                                                            </Badge>
+                                                        )}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             )}
                         </div>
-                    </div>
+                </div>
                 </div>
             )}
 

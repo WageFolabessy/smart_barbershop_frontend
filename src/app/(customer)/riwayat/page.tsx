@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { format, isPast, startOfDay, isSameDay } from 'date-fns';
+// zodResolver not used after simplification
+import { format, isPast } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { User, Star, Loader2, Edit, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
@@ -47,51 +46,52 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn, formatCurrency, getErrorMessage } from '@/lib/utils';
 import api from '@/lib/axios';
-import { Booking, Service, User as UserType, TimeSlot, AvailableBarbersEnvelope, CheckAvailabilityResponse, ReviewRequest, UpdateBookingRequest } from '@/types/api';
+import { Booking, Service, User as UserType, TimeSlot, CheckAvailabilityResponse, ReviewRequest, UpdateBookingRequest } from '@/types/api';
 
-// Review Schema
-const reviewSchema = z.object({
-    rating: z.number().min(1, 'Minimal 1 bintang').max(5),
-    comment: z.string().max(1000).optional(),
-});
+// Simple helpers to color/label status
+function getStatusColor(status: Booking['status']): string {
+    switch (status) {
+        case 'pending':
+            return 'border-yellow-500 text-yellow-600';
+        case 'confirmed':
+            return 'border-blue-500 text-blue-600';
+        case 'completed':
+            return 'border-green-500 text-green-600';
+        case 'cancelled':
+            return 'border-red-500 text-red-600';
+        default:
+            return 'border-muted-foreground text-muted-foreground';
+    }
+}
+function getStatusLabel(status: Booking['status']): string {
+    switch (status) {
+        case 'pending':
+            return 'Menunggu';
+        case 'confirmed':
+            return 'Dikonfirmasi';
+        case 'completed':
+            return 'Selesai';
+        case 'cancelled':
+            return 'Dibatalkan';
+        default:
+            return status;
+    }
+}
 
-type ReviewFormValues = z.infer<typeof reviewSchema>;
+// Review form schema
+type ReviewFormValues = { rating: number; comment: string };
 
-export default function HistoryPage() {
+export default function Page() {
     const { data: bookings } = useQuery({
         queryKey: ['bookings'],
         queryFn: async () => {
             const res = await api.get<{ data: Booking[] }>('/api/bookings');
             return res.data.data;
         },
-        // Ensure fresh data when arriving on this page
-        staleTime: 0,
-        refetchOnMount: true,
-        refetchOnReconnect: true,
-        refetchOnWindowFocus: false,
     });
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'confirmed': return 'bg-green-500/10 text-green-500 border-green-500/20';
-            case 'completed': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-            case 'cancelled': return 'bg-red-500/10 text-red-500 border-red-500/20';
-            default: return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-        }
-    };
-
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'confirmed': return 'Terkonfirmasi';
-            case 'completed': return 'Selesai';
-            case 'cancelled': return 'Dibatalkan';
-            case 'pending': return 'Menunggu';
-            default: return status;
-        }
-    };
-
-    const upcomingBookings = bookings?.filter(b => ['pending', 'confirmed'].includes(b.status)) || [];
-    const pastBookings = bookings?.filter(b => ['completed', 'cancelled'].includes(b.status)) || [];
+    const upcomingBookings = bookings?.filter((b) => ['pending', 'confirmed'].includes(b.status)) || [];
+    const pastBookings = bookings?.filter((b) => ['completed', 'cancelled'].includes(b.status)) || [];
 
     return (
         <div className="space-y-6">
@@ -108,24 +108,30 @@ export default function HistoryPage() {
 
                 <TabsContent value="upcoming" className="space-y-4 mt-4">
                     {upcomingBookings.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                            Tidak ada jadwal booking yang akan datang.
-                        </div>
+                        <div className="text-center py-12 text-muted-foreground">Tidak ada jadwal booking yang akan datang.</div>
                     ) : (
                         upcomingBookings.map((booking) => (
-                            <BookingCard key={booking.id} booking={booking} statusColor={getStatusColor(booking.status)} statusLabel={getStatusLabel(booking.status)} />
+                            <BookingCard
+                                key={booking.id}
+                                booking={booking}
+                                statusColor={getStatusColor(booking.status)}
+                                statusLabel={getStatusLabel(booking.status)}
+                            />
                         ))
                     )}
                 </TabsContent>
 
                 <TabsContent value="history" className="space-y-4 mt-4">
                     {pastBookings.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                            Belum ada riwayat booking.
-                        </div>
+                        <div className="text-center py-12 text-muted-foreground">Belum ada riwayat booking.</div>
                     ) : (
                         pastBookings.map((booking) => (
-                            <BookingCard key={booking.id} booking={booking} statusColor={getStatusColor(booking.status)} statusLabel={getStatusLabel(booking.status)} />
+                            <BookingCard
+                                key={booking.id}
+                                booking={booking}
+                                statusColor={getStatusColor(booking.status)}
+                                statusLabel={getStatusLabel(booking.status)}
+                            />
                         ))
                     )}
                 </TabsContent>
@@ -156,29 +162,7 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
         enabled: isRescheduleOpen,
     });
 
-    // Fetch barbers for reschedule
-    const { data: barbers } = useQuery({
-        queryKey: ['barbers'],
-        queryFn: async () => {
-            const now = new Date().toISOString();
-            try {
-                const res = await api.get<AvailableBarbersEnvelope>('/api/bookings/available-barbers', {
-                    params: { datetime: now }
-                });
-                return res.data.available_barbers.map(b => ({
-                    id: Number(b.id),
-                    name: b.name,
-                    email: '',
-                    role: 'barber' as const,
-                    created_at: '',
-                    updated_at: ''
-                }));
-            } catch {
-                return [];
-            }
-        },
-        enabled: isRescheduleOpen,
-    });
+    // (Barber fetching removed; selection uses existing booking barber)
 
     // Fetch time slots for reschedule
     const { data: timeSlots } = useQuery({
@@ -190,12 +174,19 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
         enabled: isRescheduleOpen,
     });
 
+    // helper declared later; inline duplicate to avoid temporal dead zone
+    const computeDayKey = (d?: Date) => {
+        const dayIndex = d ? d.getDay() : new Date().getDay();
+        const keys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'] as const;
+        return keys[dayIndex];
+    };
+    const dayKey = computeDayKey(rescheduleDate);
+    const filteredRescheduleSlots = (timeSlots || [])
+        .filter((s) => s.day_of_week === dayKey)
+        .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+
     const form = useForm<ReviewFormValues>({
-        resolver: zodResolver(reviewSchema),
-        defaultValues: {
-            rating: 5,
-            comment: '',
-        },
+        defaultValues: { rating: 5, comment: '' },
     });
 
     const reviewMutation = useMutation<void, unknown, ReviewFormValues>({
@@ -464,27 +455,6 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                                 </SelectContent>
                             </Select>
                         </div>
-
-                        {/* Barber Selector */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Kapster</label>
-                            <Select value={rescheduleBarber?.id.toString()} onValueChange={(val) => {
-                                const barber = barbers?.find(b => b.id.toString() === val);
-                                setRescheduleBarber(barber || null);
-                            }}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih kapster" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {barbers?.map((barber) => (
-                                        <SelectItem key={barber.id} value={barber.id.toString()}>
-                                            {barber.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
                         {/* Date Picker */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Tanggal</label>
@@ -492,54 +462,60 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                                 mode="single"
                                 selected={rescheduleDate}
                                 onSelect={setRescheduleDate}
-                                disabled={(date) => isPast(startOfDay(date)) && !isSameDay(date, new Date())}
-                                className="rounded-md border"
+                                defaultMonth={rescheduleDate || new Date()}
+                                fromDate={new Date()}
+                                locale={id}
                             />
                         </div>
-
                         {/* Time Slot Selector */}
                         {rescheduleDate && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Pilih Waktu</label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {timeSlots?.map((slot) => (
-                                        <Button
-                                            key={slot.id}
-                                            variant={rescheduleTimeSlot?.id === slot.id ? "default" : "outline"}
-                                            className={cn(
-                                                "relative h-auto py-3 flex flex-col gap-1",
-                                                slot.is_peak_hour && "border-primary/50"
-                                            )}
-                                            onClick={() => setRescheduleTimeSlot(slot)}
-                                            aria-label={`Pilih slot waktu ${slot.start_time?.substring(0,5)}${slot.label ? `, ${slot.label}` : ''}`}
-                                            disabled={!slot.is_active}
-                                            title={!slot.is_active ? 'Slot tidak aktif' : undefined}
-                                        >
-                                            <span className="font-bold">{slot.start_time?.substring(0, 5) || 'N/A'}</span>
-                                            {slot.label && (
-                                                <Badge
-                                                    variant="secondary"
-                                                    className={cn(
-                                                        "text-[10px] px-1.5 h-auto py-0.5 w-[90px] overflow-hidden relative",
-                                                        slot.is_peak_hour
-                                                            ? "bg-primary/20 text-primary hover:bg-primary/30"
-                                                            : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                                                    )}
-                                                    title={slot.label}
-                                                >
-                                                    <span
+                                {filteredRescheduleSlots.length === 0 ? (
+                                    <div className="flex items-center justify-center h-24 border rounded-md text-muted-foreground">
+                                        Tidak ada slot untuk hari ini. Silakan pilih hari lain.
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {filteredRescheduleSlots.map((slot) => (
+                                            <Button
+                                                key={slot.id}
+                                                variant={rescheduleTimeSlot?.id === slot.id ? "default" : "outline"}
+                                                className={cn(
+                                                    "relative h-auto py-3 flex flex-col gap-1",
+                                                    slot.is_peak_hour && "border-primary/50"
+                                                )}
+                                                onClick={() => setRescheduleTimeSlot(slot)}
+                                                aria-label={`Pilih slot waktu ${slot.start_time?.substring(0,5)}${slot.label ? `, ${slot.label}` : ''}`}
+                                                disabled={!slot.is_active}
+                                                title={!slot.is_active ? 'Slot tidak aktif' : undefined}
+                                            >
+                                                <span className="font-bold">{slot.start_time?.substring(0, 5) || 'N/A'}</span>
+                                                {slot.label && (
+                                                    <Badge
+                                                        variant="secondary"
                                                         className={cn(
-                                                            "inline-block whitespace-nowrap",
-                                                            slot.label.length > 12 && "animate-marquee"
+                                                            "text-[10px] px-1.5 h-auto py-0.5 w-[90px] overflow-hidden relative",
+                                                            slot.is_peak_hour
+                                                                ? "bg-primary/20 text-primary hover:bg-primary/30"
+                                                                : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
                                                         )}
+                                                        title={slot.label}
                                                     >
-                                                        {slot.label}
-                                                    </span>
-                                                </Badge>
-                                            )}
-                                        </Button>
-                                    ))}
-                                </div>
+                                                        <span
+                                                            className={cn(
+                                                                "inline-block whitespace-nowrap",
+                                                                slot.label.length > 12 && "animate-marquee"
+                                                            )}
+                                                        >
+                                                            {slot.label}
+                                                        </span>
+                                                    </Badge>
+                                                )}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
