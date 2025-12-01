@@ -60,6 +60,12 @@ const nextConfig: NextConfig = {
                 port: '8000',
                 pathname: '/storage/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'api.smartbabershop.eproject.tech',
+                port: '',
+                pathname: '/storage/**',
+            },
         ],
     },
 
