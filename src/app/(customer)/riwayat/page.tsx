@@ -1,20 +1,26 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
 // zodResolver not used after simplification
-import { format, isPast } from 'date-fns';
-import { id } from 'date-fns/locale';
-import { User, Star, Loader2, Edit, CalendarDays } from 'lucide-react';
-import { toast } from 'sonner';
+import { format, isPast } from 'date-fns'
+import { id } from 'date-fns/locale'
+import { User, Star, Loader2, Edit, CalendarDays } from 'lucide-react'
+import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar as DatePicker } from '@/components/ui/calendar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Calendar as DatePicker } from '@/components/ui/calendar'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import {
     Dialog,
     DialogContent,
@@ -23,7 +29,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -34,7 +40,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
 import {
     Form,
     FormControl,
@@ -42,73 +48,92 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { cn, formatCurrency, getErrorMessage } from '@/lib/utils';
-import api from '@/lib/axios';
-import { Booking, Service, User as UserType, TimeSlot, CheckAvailabilityResponse, ReviewRequest, UpdateBookingRequest } from '@/types/api';
+} from '@/components/ui/form'
+import { Textarea } from '@/components/ui/textarea'
+import { cn, formatCurrency, getErrorMessage } from '@/lib/utils'
+import api from '@/lib/axios'
+import {
+    Booking,
+    Service,
+    User as UserType,
+    TimeSlot,
+    CheckAvailabilityResponse,
+    ReviewRequest,
+    UpdateBookingRequest,
+} from '@/types/api'
 
 // Simple helpers to color/label status
 function getStatusColor(status: Booking['status']): string {
     switch (status) {
         case 'pending':
-            return 'border-yellow-500 text-yellow-600';
+            return 'border-yellow-500 text-yellow-600'
         case 'confirmed':
-            return 'border-blue-500 text-blue-600';
+            return 'border-blue-500 text-blue-600'
         case 'completed':
-            return 'border-green-500 text-green-600';
+            return 'border-green-500 text-green-600'
         case 'cancelled':
-            return 'border-red-500 text-red-600';
+            return 'border-red-500 text-red-600'
         default:
-            return 'border-muted-foreground text-muted-foreground';
+            return 'border-muted-foreground text-muted-foreground'
     }
 }
 function getStatusLabel(status: Booking['status']): string {
     switch (status) {
         case 'pending':
-            return 'Menunggu';
+            return 'Menunggu'
         case 'confirmed':
-            return 'Dikonfirmasi';
+            return 'Dikonfirmasi'
         case 'completed':
-            return 'Selesai';
+            return 'Selesai'
         case 'cancelled':
-            return 'Dibatalkan';
+            return 'Dibatalkan'
         default:
-            return status;
+            return status
     }
 }
 
 // Review form schema
-type ReviewFormValues = { rating: number; comment: string };
+type ReviewFormValues = { rating: number; comment: string }
 
 export default function Page() {
     const { data: bookings } = useQuery({
         queryKey: ['bookings'],
         queryFn: async () => {
-            const res = await api.get<{ data: Booking[] }>('/api/bookings');
-            return res.data.data;
+            const res = await api.get<{ data: Booking[] }>('/api/bookings')
+            return res.data.data
         },
-    });
+    })
 
-    const upcomingBookings = bookings?.filter((b) => ['pending', 'confirmed'].includes(b.status)) || [];
-    const pastBookings = bookings?.filter((b) => ['completed', 'cancelled'].includes(b.status)) || [];
+    const upcomingBookings =
+        bookings?.filter((b) => ['pending', 'confirmed'].includes(b.status)) ||
+        []
+    const pastBookings =
+        bookings?.filter((b) =>
+            ['completed', 'cancelled'].includes(b.status)
+        ) || []
 
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-primary">Riwayat Booking</h1>
-                <p className="text-muted-foreground">Lihat jadwal dan riwayat cukur Anda.</p>
+                <h1 className="text-primary text-3xl font-bold tracking-tight">
+                    Riwayat Booking
+                </h1>
+                <p className="text-muted-foreground">
+                    Lihat jadwal dan riwayat cukur Anda.
+                </p>
             </div>
 
             <Tabs defaultValue="upcoming" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+                <TabsList className="grid w-full max-w-[400px] grid-cols-2">
                     <TabsTrigger value="upcoming">Akan Datang</TabsTrigger>
                     <TabsTrigger value="history">Selesai</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="upcoming" className="space-y-4 mt-4">
+                <TabsContent value="upcoming" className="mt-4 space-y-4">
                     {upcomingBookings.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">Tidak ada jadwal booking yang akan datang.</div>
+                        <div className="text-muted-foreground py-12 text-center">
+                            Tidak ada jadwal booking yang akan datang.
+                        </div>
                     ) : (
                         upcomingBookings.map((booking) => (
                             <BookingCard
@@ -121,9 +146,11 @@ export default function Page() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="history" className="space-y-4 mt-4">
+                <TabsContent value="history" className="mt-4 space-y-4">
                     {pastBookings.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">Belum ada riwayat booking.</div>
+                        <div className="text-muted-foreground py-12 text-center">
+                            Belum ada riwayat booking.
+                        </div>
                     ) : (
                         pastBookings.map((booking) => (
                             <BookingCard
@@ -137,30 +164,45 @@ export default function Page() {
                 </TabsContent>
             </Tabs>
         </div>
-    );
+    )
 }
 
-function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, statusColor: string, statusLabel: string }) {
-    const queryClient = useQueryClient();
-    const [isReviewOpen, setIsReviewOpen] = useState(false);
-    const [isCancelOpen, setIsCancelOpen] = useState(false);
-    const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
+function BookingCard({
+    booking,
+    statusColor,
+    statusLabel,
+}: {
+    booking: Booking
+    statusColor: string
+    statusLabel: string
+}) {
+    const queryClient = useQueryClient()
+    const [isReviewOpen, setIsReviewOpen] = useState(false)
+    const [isCancelOpen, setIsCancelOpen] = useState(false)
+    const [isRescheduleOpen, setIsRescheduleOpen] = useState(false)
 
     // Reschedule state
-    const [rescheduleService, setRescheduleService] = useState<Service | null>(null);
-    const [rescheduleBarber, setRescheduleBarber] = useState<UserType | null>(null);
-    const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(undefined);
-    const [rescheduleTimeSlot, setRescheduleTimeSlot] = useState<TimeSlot | null>(null);
+    const [rescheduleService, setRescheduleService] = useState<Service | null>(
+        null
+    )
+    const [rescheduleBarber, setRescheduleBarber] = useState<UserType | null>(
+        null
+    )
+    const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(
+        undefined
+    )
+    const [rescheduleTimeSlot, setRescheduleTimeSlot] =
+        useState<TimeSlot | null>(null)
 
     // Fetch services for reschedule
     const { data: services } = useQuery({
         queryKey: ['services'],
         queryFn: async () => {
-            const res = await api.get<{ data: Service[] }>('/api/services');
-            return res.data.data;
+            const res = await api.get<{ data: Service[] }>('/api/services')
+            return res.data.data
         },
         enabled: isRescheduleOpen,
-    });
+    })
 
     // (Barber fetching removed; selection uses existing booking barber)
 
@@ -168,26 +210,34 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
     const { data: timeSlots } = useQuery({
         queryKey: ['time-slots'],
         queryFn: async () => {
-            const res = await api.get<{ data: TimeSlot[] }>('/api/time-slots');
-            return res.data.data;
+            const res = await api.get<{ data: TimeSlot[] }>('/api/time-slots')
+            return res.data.data
         },
         enabled: isRescheduleOpen,
-    });
+    })
 
     // helper declared later; inline duplicate to avoid temporal dead zone
     const computeDayKey = (d?: Date) => {
-        const dayIndex = d ? d.getDay() : new Date().getDay();
-        const keys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'] as const;
-        return keys[dayIndex];
-    };
-    const dayKey = computeDayKey(rescheduleDate);
+        const dayIndex = d ? d.getDay() : new Date().getDay()
+        const keys = [
+            'sunday',
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+        ] as const
+        return keys[dayIndex]
+    }
+    const dayKey = computeDayKey(rescheduleDate)
     const filteredRescheduleSlots = (timeSlots || [])
         .filter((s) => s.day_of_week === dayKey)
-        .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+        .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
 
     const form = useForm<ReviewFormValues>({
         defaultValues: { rating: 5, comment: '' },
-    });
+    })
 
     const reviewMutation = useMutation<void, unknown, ReviewFormValues>({
         mutationFn: async (values) => {
@@ -195,57 +245,70 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                 booking_id: booking.id,
                 rating: values.rating,
                 comment: values.comment,
-            };
-            await api.post('/api/reviews', payload);
+            }
+            await api.post('/api/reviews', payload)
         },
         onSuccess: () => {
-            toast.success('Terima kasih atas ulasan Anda!');
-            setIsReviewOpen(false);
+            toast.success('Terima kasih atas ulasan Anda!')
+            setIsReviewOpen(false)
             // Invalidate queries if needed
         },
         onError: (error: unknown) => {
-            toast.error(getErrorMessage(error, 'Gagal mengirim ulasan'));
+            toast.error(getErrorMessage(error, 'Gagal mengirim ulasan'))
         },
-    });
+    })
 
     // Cancel Booking Mutation
     const cancelMutation = useMutation<void, unknown, void>({
         mutationFn: async () => {
-            await api.delete(`/api/bookings/${booking.id}`);
+            await api.delete(`/api/bookings/${booking.id}`)
         },
         onSuccess: () => {
-            toast.success('Booking berhasil dibatalkan');
-            setIsCancelOpen(false);
-            queryClient.invalidateQueries({ queryKey: ['bookings'] });
+            toast.success('Booking berhasil dibatalkan')
+            setIsCancelOpen(false)
+            queryClient.invalidateQueries({ queryKey: ['bookings'] })
         },
         onError: (error: unknown) => {
-            toast.error(getErrorMessage(error, 'Gagal membatalkan booking'));
+            toast.error(getErrorMessage(error, 'Gagal membatalkan booking'))
         },
-    });
+    })
 
     // Reschedule Booking Mutation
     const rescheduleMutation = useMutation<void, unknown, void>({
         mutationFn: async () => {
-            if (!rescheduleService || !rescheduleBarber || !rescheduleDate || !rescheduleTimeSlot) return;
+            if (
+                !rescheduleService ||
+                !rescheduleBarber ||
+                !rescheduleDate ||
+                !rescheduleTimeSlot
+            )
+                return
 
             // Check if new time is in the past
-            const dateStr = format(rescheduleDate, 'yyyy-MM-dd');
-            const dateTime = `${dateStr} ${rescheduleTimeSlot.start_time}:00`;
-            const newDateTime = new Date(dateTime);
+            const dateStr = format(rescheduleDate, 'yyyy-MM-dd')
+            const dateTime = `${dateStr} ${rescheduleTimeSlot.start_time}:00`
+            const newDateTime = new Date(dateTime)
 
             if (isPast(newDateTime)) {
-                throw new Error('Tidak dapat reschedule ke waktu yang sudah lewat');
+                throw new Error(
+                    'Tidak dapat reschedule ke waktu yang sudah lewat'
+                )
             }
 
             // Check availability
-            const availRes = await api.post<CheckAvailabilityResponse>('/api/bookings/check-availability', {
-                datetime: dateTime,
-                barber_id: rescheduleBarber.id,
-                service_duration: rescheduleService.duration_minutes,
-            });
+            const availRes = await api.post<CheckAvailabilityResponse>(
+                '/api/bookings/check-availability',
+                {
+                    datetime: dateTime,
+                    barber_id: rescheduleBarber.id,
+                    service_duration: rescheduleService.duration_minutes,
+                }
+            )
 
             if (!availRes.data.available) {
-                throw new Error('Slot waktu ini sudah tidak tersedia. Silakan pilih waktu lain.');
+                throw new Error(
+                    'Slot waktu ini sudah tidak tersedia. Silakan pilih waktu lain.'
+                )
             }
 
             // Perform reschedule
@@ -253,142 +316,239 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                 service_id: rescheduleService.id,
                 barber_id: rescheduleBarber.id,
                 booking_datetime: dateTime,
-            };
-            await api.put(`/api/bookings/${booking.id}`, payload);
+            }
+            await api.put(`/api/bookings/${booking.id}`, payload)
         },
         onSuccess: () => {
-            toast.success('Booking berhasil direschedule!');
-            setIsRescheduleOpen(false);
-            queryClient.invalidateQueries({ queryKey: ['bookings'] });
+            toast.success('Booking berhasil direschedule!')
+            setIsRescheduleOpen(false)
+            queryClient.invalidateQueries({ queryKey: ['bookings'] })
         },
         onError: (error: unknown) => {
-            toast.error(getErrorMessage(error, 'Gagal reschedule booking'));
+            toast.error(getErrorMessage(error, 'Gagal reschedule booking'))
         },
-    });
+    })
 
     const handleReschedule = () => {
         // Initialize reschedule state with current booking data
-        setRescheduleService(booking.service);
-        setRescheduleBarber(booking.barber);
-        setRescheduleDate(new Date(booking.booking_datetime));
+        setRescheduleService(booking.service)
+        setRescheduleBarber(booking.barber)
+        setRescheduleDate(new Date(booking.booking_datetime))
         // Find matching time slot
-        const currentTime = format(new Date(booking.booking_datetime), 'HH:mm');
-        const matchingSlot = timeSlots?.find(slot => slot.start_time === currentTime);
-        setRescheduleTimeSlot(matchingSlot || null);
-        setIsRescheduleOpen(true);
-    };
+        const currentTime = format(new Date(booking.booking_datetime), 'HH:mm')
+        const matchingSlot = timeSlots?.find(
+            (slot) => slot.start_time === currentTime
+        )
+        setRescheduleTimeSlot(matchingSlot || null)
+        setIsRescheduleOpen(true)
+    }
 
-    const canReschedule = ['pending', 'confirmed'].includes(booking.status);
+    const canReschedule = ['pending', 'confirmed'].includes(booking.status)
 
     const onSubmit = (data: ReviewFormValues) => {
-        reviewMutation.mutate(data);
-    };
+        reviewMutation.mutate(data)
+    }
 
     return (
         <>
-            <Card className="overflow-hidden border border-border/60 bg-background/60 backdrop-blur-sm transition-shadow hover:shadow-lg">
+            <Card className="border-border/60 bg-background/60 overflow-hidden border backdrop-blur-sm transition-shadow hover:shadow-lg">
                 <CardContent className="p-4 md:p-5">
                     <div className="grid gap-4 md:gap-5">
                         {/* Top row: status + service name */}
                         <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <Badge variant="outline" className={cn("px-2 py-0.5 text-[11px] md:text-xs font-medium rounded-md border", statusColor)}>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Badge
+                                    variant="outline"
+                                    className={cn(
+                                        'rounded-md border px-2 py-0.5 text-[11px] font-medium md:text-xs',
+                                        statusColor
+                                    )}
+                                >
                                     {statusLabel}
                                 </Badge>
-                                <span className="text-[11px] md:text-xs text-muted-foreground">ID #{booking.id}</span>
+                                <span className="text-muted-foreground text-[11px] md:text-xs">
+                                    ID #{booking.id}
+                                </span>
                             </div>
-                            <h3 className="text-lg md:text-xl font-semibold leading-tight tracking-tight">
+                            <h3 className="text-lg leading-tight font-semibold tracking-tight md:text-xl">
                                 {booking.service?.name || 'Layanan'}
                             </h3>
                         </div>
 
                         {/* Middle: meta + price/actions in grid */}
-                        <div className="grid md:grid-cols-[1fr_auto] gap-6 md:gap-8 items-start">
+                        <div className="grid items-start gap-6 md:grid-cols-[1fr_auto] md:gap-8">
                             <div className="space-y-2 text-sm">
-                                <div className="flex items-center gap-2 text-muted-foreground">
+                                <div className="text-muted-foreground flex items-center gap-2">
                                     <CalendarDays className="h-4 w-4" />
-                                    <span>{format(new Date(booking.booking_datetime), 'eeee, d MMMM yyyy • HH:mm', { locale: id })}</span>
+                                    <span>
+                                        {format(
+                                            new Date(booking.booking_datetime),
+                                            'eeee, d MMMM yyyy • HH:mm',
+                                            { locale: id }
+                                        )}
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-muted-foreground">
+                                <div className="text-muted-foreground flex items-center gap-2">
                                     <User className="h-4 w-4" />
-                                    <span>{booking.barber?.name || 'Tanpa kapster'}</span>
+                                    <span>
+                                        {booking.barber?.name ||
+                                            'Tanpa kapster'}
+                                    </span>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-3 w-full md:w-56">
+                            <div className="flex w-full flex-col gap-3 md:w-56">
                                 <div className="flex flex-col pb-1">
-                                    <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Total</span>
-                                    <span className="text-2xl font-bold text-primary leading-none">{formatCurrency(booking.pricing.final_price)}</span>
+                                    <span className="text-muted-foreground text-[11px] tracking-wider uppercase">
+                                        Total
+                                    </span>
+                                    <span className="text-primary text-2xl leading-none font-bold">
+                                        {formatCurrency(
+                                            booking.pricing.final_price
+                                        )}
+                                    </span>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {canReschedule && (
-                                        <Button variant="outline" size="sm" className="gap-1" onClick={handleReschedule} aria-label="Reschedule booking">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-1"
+                                            onClick={handleReschedule}
+                                            aria-label="Reschedule booking"
+                                        >
                                             <Edit className="h-4 w-4" />
                                             <span>Reschedule</span>
                                         </Button>
                                     )}
                                     {canReschedule && (
-                                        <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
+                                        <AlertDialog
+                                            open={isCancelOpen}
+                                            onOpenChange={setIsCancelOpen}
+                                        >
                                             <AlertDialogTrigger asChild>
-                                                <Button variant="destructive" size="sm" aria-label="Batalkan booking">
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    aria-label="Batalkan booking"
+                                                >
                                                     Batalkan
                                                 </Button>
                                             </AlertDialogTrigger>
                                             <AlertDialogContent>
                                                 <AlertDialogHeader>
-                                                    <AlertDialogTitle>Batalkan Booking?</AlertDialogTitle>
+                                                    <AlertDialogTitle>
+                                                        Batalkan Booking?
+                                                    </AlertDialogTitle>
                                                     <AlertDialogDescription>
-                                                        Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat dibatalkan.
+                                                        Apakah Anda yakin ingin
+                                                        membatalkan booking ini?
+                                                        Tindakan ini tidak dapat
+                                                        dibatalkan.
                                                     </AlertDialogDescription>
                                                 </AlertDialogHeader>
                                                 <AlertDialogFooter>
-                                                    <AlertDialogCancel>Tidak</AlertDialogCancel>
+                                                    <AlertDialogCancel>
+                                                        Tidak
+                                                    </AlertDialogCancel>
                                                     <AlertDialogAction
                                                         onClick={(e) => {
-                                                            e.preventDefault();
-                                                            cancelMutation.mutate();
+                                                            e.preventDefault()
+                                                            cancelMutation.mutate()
                                                         }}
                                                         className="bg-red-500 hover:bg-red-600"
                                                     >
-                                                        {cancelMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ya, Batalkan'}
+                                                        {cancelMutation.isPending ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            'Ya, Batalkan'
+                                                        )}
                                                     </AlertDialogAction>
                                                 </AlertDialogFooter>
                                             </AlertDialogContent>
                                         </AlertDialog>
                                     )}
                                     {booking.status === 'completed' && (
-                                        <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+                                        <Dialog
+                                            open={isReviewOpen}
+                                            onOpenChange={setIsReviewOpen}
+                                        >
                                             <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm" className="gap-1" aria-label="Beri ulasan">
-                                                    <Star className="h-4 w-4" /> Ulasan
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-1"
+                                                    aria-label="Beri ulasan"
+                                                >
+                                                    <Star className="h-4 w-4" />{' '}
+                                                    Ulasan
                                                 </Button>
                                             </DialogTrigger>
                                             <DialogContent>
                                                 <DialogHeader>
-                                                    <DialogTitle>Beri Ulasan Layanan</DialogTitle>
+                                                    <DialogTitle>
+                                                        Beri Ulasan Layanan
+                                                    </DialogTitle>
                                                     <DialogDescription>
-                                                        Bagaimana pengalaman cukur Anda dengan {booking.barber.name}?
+                                                        Bagaimana pengalaman
+                                                        cukur Anda dengan{' '}
+                                                        {booking.barber.name}?
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 <Form {...form}>
-                                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                                    <form
+                                                        onSubmit={form.handleSubmit(
+                                                            onSubmit
+                                                        )}
+                                                        className="space-y-4"
+                                                    >
                                                         <FormField
-                                                            control={form.control}
+                                                            control={
+                                                                form.control
+                                                            }
                                                             name="rating"
-                                                            render={({ field }) => (
+                                                            render={({
+                                                                field,
+                                                            }) => (
                                                                 <FormItem>
-                                                                    <FormLabel>Rating</FormLabel>
+                                                                    <FormLabel>
+                                                                        Rating
+                                                                    </FormLabel>
                                                                     <FormControl>
                                                                         <div className="flex gap-2">
-                                                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                                                <button
-                                                                                    key={star}
-                                                                                    type="button"
-                                                                                    onClick={() => field.onChange(star)}
-                                                                                    className={`focus:outline-none transition-colors ${star <= field.value ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'}`}
-                                                                                >
-                                                                                    <Star className="h-8 w-8" fill={star <= field.value ? "currentColor" : "none"} />
-                                                                                </button>
-                                                                            ))}
+                                                                            {[
+                                                                                1,
+                                                                                2,
+                                                                                3,
+                                                                                4,
+                                                                                5,
+                                                                            ].map(
+                                                                                (
+                                                                                    star
+                                                                                ) => (
+                                                                                    <button
+                                                                                        key={
+                                                                                            star
+                                                                                        }
+                                                                                        type="button"
+                                                                                        onClick={() =>
+                                                                                            field.onChange(
+                                                                                                star
+                                                                                            )
+                                                                                        }
+                                                                                        className={`transition-colors focus:outline-none ${star <= field.value ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground'}`}
+                                                                                    >
+                                                                                        <Star
+                                                                                            className="h-8 w-8"
+                                                                                            fill={
+                                                                                                star <=
+                                                                                                field.value
+                                                                                                    ? 'currentColor'
+                                                                                                    : 'none'
+                                                                                            }
+                                                                                        />
+                                                                                    </button>
+                                                                                )
+                                                                            )}
                                                                         </div>
                                                                     </FormControl>
                                                                     <FormMessage />
@@ -396,21 +556,38 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                                                             )}
                                                         />
                                                         <FormField
-                                                            control={form.control}
+                                                            control={
+                                                                form.control
+                                                            }
                                                             name="comment"
-                                                            render={({ field }) => (
+                                                            render={({
+                                                                field,
+                                                            }) => (
                                                                 <FormItem>
-                                                                    <FormLabel>Komentar (Opsional)</FormLabel>
+                                                                    <FormLabel>
+                                                                        Komentar
+                                                                        (Opsional)
+                                                                    </FormLabel>
                                                                     <FormControl>
-                                                                        <Textarea placeholder="Ceritakan pengalaman Anda..." {...field} />
+                                                                        <Textarea
+                                                                            placeholder="Ceritakan pengalaman Anda..."
+                                                                            {...field}
+                                                                        />
                                                                     </FormControl>
                                                                     <FormMessage />
                                                                 </FormItem>
                                                             )}
                                                         />
                                                         <DialogFooter>
-                                                            <Button type="submit" disabled={reviewMutation.isPending}>
-                                                                {reviewMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                            <Button
+                                                                type="submit"
+                                                                disabled={
+                                                                    reviewMutation.isPending
+                                                                }
+                                                            >
+                                                                {reviewMutation.isPending && (
+                                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                )}
                                                                 Kirim Ulasan
                                                             </Button>
                                                         </DialogFooter>
@@ -428,28 +605,40 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
 
             {/* Reschedule Dialog - Outside Card to prevent overlap */}
             <Dialog open={isRescheduleOpen} onOpenChange={setIsRescheduleOpen}>
-                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
                     <DialogHeader>
                         <DialogTitle>Reschedule Booking</DialogTitle>
                         <DialogDescription>
-                            Ubah detail booking Anda. Kami akan mengecek ketersediaan sebelum menyimpan perubahan.
+                            Ubah detail booking Anda. Kami akan mengecek
+                            ketersediaan sebelum menyimpan perubahan.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         {/* Service Selector */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Layanan</label>
-                            <Select value={rescheduleService?.id.toString()} onValueChange={(val) => {
-                                const service = services?.find(s => s.id.toString() === val);
-                                setRescheduleService(service || null);
-                            }}>
+                            <label className="text-sm font-medium">
+                                Layanan
+                            </label>
+                            <Select
+                                value={rescheduleService?.id.toString()}
+                                onValueChange={(val) => {
+                                    const service = services?.find(
+                                        (s) => s.id.toString() === val
+                                    )
+                                    setRescheduleService(service || null)
+                                }}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Pilih layanan" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {services?.map((service) => (
-                                        <SelectItem key={service.id} value={service.id.toString()}>
-                                            {service.name} - {formatCurrency(service.base_price)}
+                                        <SelectItem
+                                            key={service.id}
+                                            value={service.id.toString()}
+                                        >
+                                            {service.name} -{' '}
+                                            {formatCurrency(service.base_price)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -457,56 +646,84 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                         </div>
                         {/* Date Picker */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Tanggal</label>
+                            <label className="text-sm font-medium">
+                                Tanggal
+                            </label>
                             <DatePicker
                                 mode="single"
                                 selected={rescheduleDate}
                                 onSelect={setRescheduleDate}
                                 defaultMonth={rescheduleDate || new Date()}
-                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                className="rounded-md border bg-card"
+                                disabled={(date) =>
+                                    date <
+                                    new Date(new Date().setHours(0, 0, 0, 0))
+                                }
+                                className="bg-card rounded-md border"
                                 locale={id}
                             />
                         </div>
                         {/* Time Slot Selector */}
                         {rescheduleDate && (
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Pilih Waktu</label>
+                                <label className="text-sm font-medium">
+                                    Pilih Waktu
+                                </label>
                                 {filteredRescheduleSlots.length === 0 ? (
-                                    <div className="flex items-center justify-center h-24 border rounded-md text-muted-foreground">
-                                        Tidak ada slot untuk hari ini. Silakan pilih hari lain.
+                                    <div className="text-muted-foreground flex h-24 items-center justify-center rounded-md border">
+                                        Tidak ada slot untuk hari ini. Silakan
+                                        pilih hari lain.
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+                                    <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
                                         {filteredRescheduleSlots.map((slot) => (
                                             <Button
                                                 key={slot.id}
-                                                variant={rescheduleTimeSlot?.id === slot.id ? "default" : "outline"}
+                                                variant={
+                                                    rescheduleTimeSlot?.id ===
+                                                    slot.id
+                                                        ? 'default'
+                                                        : 'outline'
+                                                }
                                                 className={cn(
-                                                    "relative h-auto py-2 md:py-3 flex flex-col gap-1",
-                                                    slot.is_peak_hour && "border-primary/50"
+                                                    'relative flex h-auto flex-col gap-1 py-2 md:py-3',
+                                                    slot.is_peak_hour &&
+                                                        'border-primary/50'
                                                 )}
-                                                onClick={() => setRescheduleTimeSlot(slot)}
-                                                aria-label={`Pilih slot waktu ${slot.start_time?.substring(0,5)}${slot.label ? `, ${slot.label}` : ''}`}
+                                                onClick={() =>
+                                                    setRescheduleTimeSlot(slot)
+                                                }
+                                                aria-label={`Pilih slot waktu ${slot.start_time?.substring(0, 5)}${slot.label ? `, ${slot.label}` : ''}`}
                                                 disabled={!slot.is_active}
-                                                title={!slot.is_active ? 'Slot tidak aktif' : undefined}
+                                                title={
+                                                    !slot.is_active
+                                                        ? 'Slot tidak aktif'
+                                                        : undefined
+                                                }
                                             >
-                                                <span className="font-bold">{slot.start_time?.substring(0, 5) || 'N/A'}</span>
+                                                <span className="font-bold">
+                                                    {slot.start_time?.substring(
+                                                        0,
+                                                        5
+                                                    ) || 'N/A'}
+                                                </span>
                                                 {slot.label && (
                                                     <Badge
                                                         variant="secondary"
                                                         className={cn(
-                                                            "text-[10px] px-1.5 h-auto py-0.5 max-w-[88px] overflow-hidden relative",
+                                                            'relative h-auto max-w-[88px] overflow-hidden px-1.5 py-0.5 text-[10px]',
                                                             slot.is_peak_hour
-                                                                ? "bg-primary/20 text-primary hover:bg-primary/30"
-                                                                : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                                                                ? 'bg-primary/20 text-primary hover:bg-primary/30'
+                                                                : 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
                                                         )}
                                                         title={slot.label}
                                                     >
                                                         <span
                                                             className={cn(
-                                                                "inline-block whitespace-nowrap",
-                                                                slot.label.length > 12 && "animate-marquee"
+                                                                'inline-block whitespace-nowrap',
+                                                                slot.label
+                                                                    .length >
+                                                                    12 &&
+                                                                    'animate-marquee'
                                                             )}
                                                         >
                                                             {slot.label}
@@ -521,32 +738,53 @@ function BookingCard({ booking, statusColor, statusLabel }: { booking: Booking, 
                         )}
                     </div>
                     {rescheduleService && rescheduleTimeSlot && (
-                        <div className="rounded-md border p-3 flex items-center justify-between text-sm">
-                            <div className="text-muted-foreground">Total Estimasi</div>
+                        <div className="flex items-center justify-between rounded-md border p-3 text-sm">
+                            <div className="text-muted-foreground">
+                                Total Estimasi
+                            </div>
                             <div className="text-right">
-                                <div className="font-bold text-primary">
-                                    {formatCurrency(rescheduleService.base_price * rescheduleTimeSlot.price_multiplier)}
-                                    <span className="ml-2 text-xs text-muted-foreground">
-                                        ({formatCurrency(rescheduleService.base_price)} × {rescheduleTimeSlot.price_multiplier}x)
+                                <div className="text-primary font-bold">
+                                    {formatCurrency(
+                                        rescheduleService.base_price *
+                                            rescheduleTimeSlot.price_multiplier
+                                    )}
+                                    <span className="text-muted-foreground ml-2 text-xs">
+                                        (
+                                        {formatCurrency(
+                                            rescheduleService.base_price
+                                        )}{' '}
+                                        × {rescheduleTimeSlot.price_multiplier}
+                                        x)
                                     </span>
                                 </div>
                             </div>
                         </div>
                     )}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsRescheduleOpen(false)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsRescheduleOpen(false)}
+                        >
                             Batal
                         </Button>
                         <Button
                             onClick={() => rescheduleMutation.mutate()}
-                            disabled={!rescheduleService || !rescheduleBarber || !rescheduleDate || !rescheduleTimeSlot || rescheduleMutation.isPending}
+                            disabled={
+                                !rescheduleService ||
+                                !rescheduleBarber ||
+                                !rescheduleDate ||
+                                !rescheduleTimeSlot ||
+                                rescheduleMutation.isPending
+                            }
                         >
-                            {rescheduleMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {rescheduleMutation.isPending && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
                             Simpan Perubahan
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
         </>
-    );
+    )
 }

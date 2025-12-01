@@ -14,9 +14,7 @@
             "get": {
                 "operationId": "users.index",
                 "summary": "List all users (Admin only)",
-                "tags": [
-                    "AdminUser"
-                ],
+                "tags": ["AdminUser"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -33,10 +31,7 @@
                                         },
                                         "data": {}
                                     },
-                                    "required": [
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["message", "data"]
                                 }
                             }
                         }
@@ -49,9 +44,7 @@
             "post": {
                 "operationId": "users.store",
                 "summary": "Store a newly created user (Admin only)",
-                "tags": [
-                    "AdminUser"
-                ],
+                "tags": ["AdminUser"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -89,9 +82,7 @@
             "get": {
                 "operationId": "users.show",
                 "summary": "Show specific user details",
-                "tags": [
-                    "AdminUser"
-                ],
+                "tags": ["AdminUser"],
                 "parameters": [
                     {
                         "name": "user",
@@ -121,10 +112,7 @@
                                             "$ref": "#/components/schemas/UserResource"
                                         }
                                     },
-                                    "required": [
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["message", "data"]
                                 }
                             }
                         }
@@ -140,9 +128,7 @@
             "put": {
                 "operationId": "users.update",
                 "summary": "Update user details",
-                "tags": [
-                    "AdminUser"
-                ],
+                "tags": ["AdminUser"],
                 "parameters": [
                     {
                         "name": "user",
@@ -189,9 +175,7 @@
             "delete": {
                 "operationId": "users.destroy",
                 "summary": "Delete user",
-                "tags": [
-                    "AdminUser"
-                ],
+                "tags": ["AdminUser"],
                 "parameters": [
                     {
                         "name": "user",
@@ -227,9 +211,7 @@
             "post": {
                 "operationId": "auth.register",
                 "summary": "Register a new user",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -261,9 +243,7 @@
             "post": {
                 "operationId": "auth.login",
                 "summary": "Login user",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -295,9 +275,7 @@
             "post": {
                 "operationId": "auth.logout",
                 "summary": "Logout user",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -319,9 +297,7 @@
             "post": {
                 "operationId": "booking.checkAvailability",
                 "summary": "Check barber availability",
-                "tags": [
-                    "Booking"
-                ],
+                "tags": ["Booking"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -344,9 +320,7 @@
                                             "type": "boolean"
                                         }
                                     },
-                                    "required": [
-                                        "available"
-                                    ]
+                                    "required": ["available"]
                                 }
                             }
                         }
@@ -364,9 +338,7 @@
             "get": {
                 "operationId": "booking.availableBarbers",
                 "summary": "Get available barbers for a datetime",
-                "tags": [
-                    "Booking"
-                ],
+                "tags": ["Booking"],
                 "parameters": [
                     {
                         "name": "datetime",
@@ -381,10 +353,7 @@
                         "name": "service_duration",
                         "in": "query",
                         "schema": {
-                            "type": [
-                                "integer",
-                                "null"
-                            ],
+                            "type": ["integer", "null"],
                             "minimum": 15
                         }
                     }
@@ -409,16 +378,11 @@
                                                         "type": "string"
                                                     }
                                                 },
-                                                "required": [
-                                                    "id",
-                                                    "name"
-                                                ]
+                                                "required": ["id", "name"]
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "available_barbers"
-                                    ]
+                                    "required": ["available_barbers"]
                                 }
                             }
                         }
@@ -436,9 +400,7 @@
             "get": {
                 "operationId": "bookings.index",
                 "summary": "Display a listing of bookings",
-                "tags": [
-                    "Booking"
-                ],
+                "tags": ["Booking"],
                 "responses": {
                     "200": {
                         "description": "Array of `BookingResource`",
@@ -454,9 +416,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -469,9 +429,7 @@
             "post": {
                 "operationId": "bookings.store",
                 "summary": "Store a newly created booking",
-                "tags": [
-                    "Booking"
-                ],
+                "tags": ["Booking"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -506,9 +464,7 @@
             "get": {
                 "operationId": "bookings.show",
                 "summary": "Display the specified booking",
-                "tags": [
-                    "Booking"
-                ],
+                "tags": ["Booking"],
                 "parameters": [
                     {
                         "name": "booking",
@@ -532,9 +488,7 @@
                                             "$ref": "#/components/schemas/BookingResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -550,9 +504,7 @@
             "put": {
                 "operationId": "bookings.update",
                 "summary": "Update the specified booking",
-                "tags": [
-                    "Booking"
-                ],
+                "tags": ["Booking"],
                 "parameters": [
                     {
                         "name": "booking",
@@ -598,9 +550,7 @@
             "delete": {
                 "operationId": "bookings.destroy",
                 "summary": "Remove the specified booking (cancel)",
-                "tags": [
-                    "Booking"
-                ],
+                "tags": ["Booking"],
                 "parameters": [
                     {
                         "name": "booking",
@@ -636,9 +586,7 @@
             "get": {
                 "operationId": "dashboard.overview",
                 "summary": "Get dashboard overview statistics",
-                "tags": [
-                    "Dashboard"
-                ],
+                "tags": ["Dashboard"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -652,9 +600,7 @@
                                             "items": {}
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -669,9 +615,7 @@
             "get": {
                 "operationId": "dashboard.revenue",
                 "summary": "Get revenue statistics",
-                "tags": [
-                    "Dashboard"
-                ],
+                "tags": ["Dashboard"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -685,9 +629,7 @@
                                             "items": {}
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -702,9 +644,7 @@
             "get": {
                 "operationId": "dashboard.popularServices",
                 "summary": "Get popular services ranking",
-                "tags": [
-                    "Dashboard"
-                ],
+                "tags": ["Dashboard"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -718,9 +658,7 @@
                                             "items": {}
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -735,9 +673,7 @@
             "get": {
                 "operationId": "dashboard.barberPerformance",
                 "summary": "Get barber performance statistics",
-                "tags": [
-                    "Dashboard"
-                ],
+                "tags": ["Dashboard"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -751,9 +687,7 @@
                                             "items": {}
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -768,9 +702,7 @@
             "get": {
                 "operationId": "dashboard.recentBookings",
                 "summary": "Get recent bookings for monitoring",
-                "tags": [
-                    "Dashboard"
-                ],
+                "tags": ["Dashboard"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -784,9 +716,7 @@
                                             "items": {}
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -801,9 +731,7 @@
             "get": {
                 "operationId": "hair-records.index",
                 "summary": "Display a listing of hair records",
-                "tags": [
-                    "HairRecord"
-                ],
+                "tags": ["HairRecord"],
                 "responses": {
                     "200": {
                         "description": "Array of `HairRecordResource`",
@@ -819,9 +747,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -834,9 +760,7 @@
             "post": {
                 "operationId": "hair-records.store",
                 "summary": "Store a newly created hair record",
-                "tags": [
-                    "HairRecord"
-                ],
+                "tags": ["HairRecord"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -871,9 +795,7 @@
             "get": {
                 "operationId": "hair-records.show",
                 "summary": "Display the specified hair record",
-                "tags": [
-                    "HairRecord"
-                ],
+                "tags": ["HairRecord"],
                 "parameters": [
                     {
                         "name": "hairRecord",
@@ -897,9 +819,7 @@
                                             "$ref": "#/components/schemas/HairRecordResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -915,9 +835,7 @@
             "put": {
                 "operationId": "hair-records.update",
                 "summary": "Update the specified hair record",
-                "tags": [
-                    "HairRecord"
-                ],
+                "tags": ["HairRecord"],
                 "parameters": [
                     {
                         "name": "hairRecord",
@@ -963,9 +881,7 @@
             "delete": {
                 "operationId": "hair-records.destroy",
                 "summary": "Remove the specified hair record",
-                "tags": [
-                    "HairRecord"
-                ],
+                "tags": ["HairRecord"],
                 "parameters": [
                     {
                         "name": "hairRecord",
@@ -1001,9 +917,7 @@
             "post": {
                 "operationId": "review.store",
                 "summary": "Store a newly created review",
-                "tags": [
-                    "Review"
-                ],
+                "tags": ["Review"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1038,9 +952,7 @@
             "get": {
                 "operationId": "review.barberReviews",
                 "summary": "Get reviews for a specific barber",
-                "tags": [
-                    "Review"
-                ],
+                "tags": ["Review"],
                 "parameters": [
                     {
                         "name": "barberId",
@@ -1066,9 +978,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1080,9 +990,7 @@
             "get": {
                 "operationId": "service.index",
                 "summary": "Display a listing of services",
-                "tags": [
-                    "Service"
-                ],
+                "tags": ["Service"],
                 "responses": {
                     "200": {
                         "description": "Array of `ServiceResource`",
@@ -1098,9 +1006,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1112,9 +1018,7 @@
             "get": {
                 "operationId": "service.show",
                 "summary": "Display the specified service",
-                "tags": [
-                    "Service"
-                ],
+                "tags": ["Service"],
                 "parameters": [
                     {
                         "name": "service",
@@ -1138,9 +1042,7 @@
                                             "$ref": "#/components/schemas/ServiceResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1155,9 +1057,7 @@
             "post": {
                 "operationId": "service.store",
                 "summary": "Store a newly created service",
-                "tags": [
-                    "Service"
-                ],
+                "tags": ["Service"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1192,9 +1092,7 @@
             "put": {
                 "operationId": "service.update",
                 "summary": "Update the specified service",
-                "tags": [
-                    "Service"
-                ],
+                "tags": ["Service"],
                 "parameters": [
                     {
                         "name": "service",
@@ -1240,9 +1138,7 @@
             "delete": {
                 "operationId": "service.destroy",
                 "summary": "Remove the specified service",
-                "tags": [
-                    "Service"
-                ],
+                "tags": ["Service"],
                 "parameters": [
                     {
                         "name": "service",
@@ -1278,9 +1174,7 @@
             "get": {
                 "operationId": "timeSlot.index",
                 "summary": "Display a listing of time slots",
-                "tags": [
-                    "TimeSlot"
-                ],
+                "tags": ["TimeSlot"],
                 "responses": {
                     "200": {
                         "description": "Array of `TimeSlotResource`",
@@ -1296,9 +1190,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1310,9 +1202,7 @@
             "get": {
                 "operationId": "timeSlot.show",
                 "summary": "Display the specified time slot",
-                "tags": [
-                    "TimeSlot"
-                ],
+                "tags": ["TimeSlot"],
                 "parameters": [
                     {
                         "name": "timeSlot",
@@ -1336,9 +1226,7 @@
                                             "$ref": "#/components/schemas/TimeSlotResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1353,9 +1241,7 @@
             "post": {
                 "operationId": "timeSlot.store",
                 "summary": "Store a newly created time slot",
-                "tags": [
-                    "TimeSlot"
-                ],
+                "tags": ["TimeSlot"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1390,9 +1276,7 @@
             "put": {
                 "operationId": "timeSlot.update",
                 "summary": "Update the specified time slot",
-                "tags": [
-                    "TimeSlot"
-                ],
+                "tags": ["TimeSlot"],
                 "parameters": [
                     {
                         "name": "timeSlot",
@@ -1438,9 +1322,7 @@
             "delete": {
                 "operationId": "timeSlot.destroy",
                 "summary": "Remove the specified time slot",
-                "tags": [
-                    "TimeSlot"
-                ],
+                "tags": ["TimeSlot"],
                 "parameters": [
                     {
                         "name": "timeSlot",
@@ -1509,20 +1391,13 @@
                                 "type": "number"
                             }
                         },
-                        "required": [
-                            "base_price",
-                            "multiplier",
-                            "final_price"
-                        ]
+                        "required": ["base_price", "multiplier", "final_price"]
                     },
                     "status": {
                         "type": "string"
                     },
                     "notes": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "created_at": {
                         "type": "string"
@@ -1553,17 +1428,11 @@
                         "type": "integer"
                     },
                     "service_duration": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ],
+                        "type": ["integer", "null"],
                         "minimum": 15
                     }
                 },
-                "required": [
-                    "datetime",
-                    "barber_id"
-                ],
+                "required": ["datetime", "barber_id"],
                 "title": "CheckAvailabilityRequest"
             },
             "HairRecordResource": {
@@ -1579,55 +1448,31 @@
                         "$ref": "#/components/schemas/UserResource"
                     },
                     "booking_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
+                        "type": ["integer", "null"]
                     },
                     "hair_type": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "scalp_condition": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "treatment_notes": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "barber_recommendations": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "photos": {
                         "type": "object",
                         "properties": {
                             "before": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
+                                "type": ["string", "null"]
                             },
                             "after": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
+                                "type": ["string", "null"]
                             }
                         },
-                        "required": [
-                            "before",
-                            "after"
-                        ]
+                        "required": ["before", "after"]
                     },
                     "created_at": {
                         "type": "string"
@@ -1660,10 +1505,7 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "email",
-                    "password"
-                ],
+                "required": ["email", "password"],
                 "title": "LoginRequest"
             },
             "RegisterRequest": {
@@ -1683,10 +1525,7 @@
                         "minLength": 8
                     },
                     "phone": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 20
                     },
                     "password_confirmation": {
@@ -1715,21 +1554,13 @@
                         "type": "integer"
                     },
                     "comment": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "created_at": {
                         "type": "string"
                     }
                 },
-                "required": [
-                    "id",
-                    "rating",
-                    "comment",
-                    "created_at"
-                ],
+                "required": ["id", "rating", "comment", "created_at"],
                 "title": "ReviewResource"
             },
             "ServiceResource": {
@@ -1742,10 +1573,7 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "base_price": {
                         "type": "number"
@@ -1788,10 +1616,7 @@
                         "format": "date-time"
                     },
                     "notes": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 500
                     }
                 },
@@ -1810,65 +1635,41 @@
                         "type": "integer"
                     },
                     "booking_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
+                        "type": ["integer", "null"]
                     },
                     "barber_id": {
                         "type": "integer"
                     },
                     "hair_type": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 100
                     },
                     "scalp_condition": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 100
                     },
                     "treatment_notes": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 1000
                     },
                     "barber_recommendations": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 1000
                     },
                     "photo_before": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "binary",
                         "contentMediaType": "application/octet-stream",
                         "maxLength": 2048
                     },
                     "photo_after": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "binary",
                         "contentMediaType": "application/octet-stream",
                         "maxLength": 2048
                     }
                 },
-                "required": [
-                    "customer_id",
-                    "barber_id"
-                ],
+                "required": ["customer_id", "barber_id"],
                 "title": "StoreHairRecordRequest"
             },
             "StoreReviewRequest": {
@@ -1883,17 +1684,11 @@
                         "maximum": 5
                     },
                     "comment": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 1000
                     }
                 },
-                "required": [
-                    "booking_id",
-                    "rating"
-                ],
+                "required": ["booking_id", "rating"],
                 "title": "StoreReviewRequest"
             },
             "StoreServiceRequest": {
@@ -1904,10 +1699,7 @@
                         "maxLength": 255
                     },
                     "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "base_price": {
                         "type": "number",
@@ -1921,11 +1713,7 @@
                         "type": "boolean"
                     }
                 },
-                "required": [
-                    "name",
-                    "base_price",
-                    "duration_minutes"
-                ],
+                "required": ["name", "base_price", "duration_minutes"],
                 "title": "StoreServiceRequest"
             },
             "StoreTimeSlotRequest": {
@@ -1955,10 +1743,7 @@
                         "maximum": 5
                     },
                     "label": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 255
                     },
                     "is_active": {
@@ -1991,17 +1776,10 @@
                     },
                     "role": {
                         "type": "string",
-                        "enum": [
-                            "admin",
-                            "barber",
-                            "customer"
-                        ]
+                        "enum": ["admin", "barber", "customer"]
                     },
                     "phone": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 20
                     },
                     "password_confirmation": {
@@ -2037,10 +1815,7 @@
                         "type": "number"
                     },
                     "label": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "is_active": {
                         "type": "boolean"
@@ -2083,10 +1858,7 @@
                         ]
                     },
                     "notes": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 500
                     }
                 },
@@ -2112,19 +1884,13 @@
                         "maxLength": 1000
                     },
                     "photo_before": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "binary",
                         "contentMediaType": "application/octet-stream",
                         "maxLength": 2048
                     },
                     "photo_after": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "binary",
                         "contentMediaType": "application/octet-stream",
                         "maxLength": 2048
@@ -2140,10 +1906,7 @@
                         "maxLength": 255
                     },
                     "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "base_price": {
                         "type": "number",
@@ -2186,10 +1949,7 @@
                         "maximum": 5
                     },
                     "label": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 255
                     },
                     "is_active": {
@@ -2211,40 +1971,23 @@
                         "maxLength": 255
                     },
                     "phone": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "maxLength": 20
                     },
                     "role": {
                         "type": "string",
-                        "enum": [
-                            "admin",
-                            "barber",
-                            "customer"
-                        ]
+                        "enum": ["admin", "barber", "customer"]
                     },
                     "password": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "minLength": 8
                     },
                     "password_confirmation": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "minLength": 8
                     }
                 },
-                "required": [
-                    "name",
-                    "email",
-                    "role"
-                ],
+                "required": ["name", "email", "role"],
                 "title": "UpdateUserRequest"
             },
             "UserResource": {
@@ -2263,10 +2006,7 @@
                         "type": "string"
                     },
                     "phone": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "created_at": {
                         "type": "string"
@@ -2306,10 +2046,7 @@
                                     }
                                 }
                             },
-                            "required": [
-                                "message",
-                                "errors"
-                            ]
+                            "required": ["message", "errors"]
                         }
                     }
                 }
@@ -2326,9 +2063,7 @@
                                     "description": "Error overview."
                                 }
                             },
-                            "required": [
-                                "message"
-                            ]
+                            "required": ["message"]
                         }
                     }
                 }
@@ -2345,9 +2080,7 @@
                                     "description": "Error overview."
                                 }
                             },
-                            "required": [
-                                "message"
-                            ]
+                            "required": ["message"]
                         }
                     }
                 }
@@ -2364,9 +2097,7 @@
                                     "description": "Error overview."
                                 }
                             },
-                            "required": [
-                                "message"
-                            ]
+                            "required": ["message"]
                         }
                     }
                 }

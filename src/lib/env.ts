@@ -1,33 +1,33 @@
 /**
  * Environment variables validation and type-safe access
- * 
+ *
  * This module ensures all required environment variables are present
  * and provides type-safe access to them.
  */
 
-const requiredEnvVars = ['NEXT_PUBLIC_API_URL'] as const;
+const requiredEnvVars = ['NEXT_PUBLIC_API_URL'] as const
 
 function validateEnv() {
-    const missing: string[] = [];
+    const missing: string[] = []
 
     requiredEnvVars.forEach((varName) => {
         if (!process.env[varName]) {
-            missing.push(varName);
+            missing.push(varName)
         }
-    });
+    })
 
     if (missing.length > 0) {
         throw new Error(
             `Missing required environment variables: ${missing.join(', ')}\n` +
-            'Please check your .env.local file or environment configuration.'
-        );
+                'Please check your .env.local file or environment configuration.'
+        )
     }
 }
 
 // Only validate in production builds, not during development
 // Development has fallback values, so validation is optional
 if (process.env.NODE_ENV === 'production') {
-    validateEnv();
+    validateEnv()
 }
 
 /**
@@ -40,4 +40,4 @@ export const env = {
     appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     isDevelopment: process.env.NODE_ENV === 'development',
     isProduction: process.env.NODE_ENV === 'production',
-} as const;
+} as const

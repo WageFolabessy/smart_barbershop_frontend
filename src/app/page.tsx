@@ -1,47 +1,54 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Scissors } from 'lucide-react';
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Scissors } from 'lucide-react'
 
 export default function Home() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-primary/10 via-background to-background z-0" />
+    return (
+        <div className="bg-background text-foreground relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+            {/* Background Effects */}
+            <div className="from-primary/10 via-background to-background absolute top-0 left-0 z-0 h-full w-full bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))]" />
 
-      <div className="z-10 text-center space-y-6 max-w-2xl px-4">
-        <div className="flex justify-center mb-8">
-          <div className="bg-primary/20 p-6 rounded-full border-2 border-primary/50 shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-            <Scissors className="h-16 w-16 text-primary" />
-          </div>
+            <div className="z-10 max-w-2xl space-y-6 px-4 text-center">
+                <div className="mb-8 flex justify-center">
+                    <div className="bg-primary/20 border-primary/50 rounded-full border-2 p-6 shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+                        <Scissors className="text-primary h-16 w-16" />
+                    </div>
+                </div>
+
+                <h1 className="bg-linear-to-b from-white to-white/50 bg-clip-text text-5xl font-bold tracking-tighter text-transparent md:text-7xl">
+                    Smart Barbershop
+                </h1>
+
+                <p className="text-muted-foreground text-xl">
+                    Pengalaman Cukur Rambut Premium dengan Sentuhan Teknologi.
+                    <br />
+                    Booking Mudah. Gaya Maksimal.
+                </p>
+
+                <div className="flex justify-center gap-4 pt-8">
+                    <Link href="/login">
+                        <Button
+                            size="lg"
+                            className="px-8 py-6 text-lg font-bold shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all hover:shadow-[0_0_30px_rgba(212,175,55,0.6)]"
+                        >
+                            Masuk Sekarang
+                        </Button>
+                    </Link>
+                    <Link href="/register">
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            className="border-primary/50 hover:bg-primary/10 px-8 py-6 text-lg font-bold"
+                        >
+                            Daftar Akun
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+
+            <div className="text-muted-foreground/50 absolute bottom-8 text-sm">
+                &copy; 2025 Smart Barbershop. All rights reserved.
+            </div>
         </div>
-
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-linear-to-b from-white to-white/50">
-          Smart Barbershop
-        </h1>
-
-        <p className="text-xl text-muted-foreground">
-          Pengalaman Cukur Rambut Premium dengan Sentuhan Teknologi.
-          <br />
-          Booking Mudah. Gaya Maksimal.
-        </p>
-
-        <div className="flex gap-4 justify-center pt-8">
-          <Link href="/login">
-            <Button size="lg" className="text-lg px-8 py-6 font-bold shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-all">
-              Masuk Sekarang
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6 font-bold border-primary/50 hover:bg-primary/10">
-              Daftar Akun
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      <div className="absolute bottom-8 text-sm text-muted-foreground/50">
-        &copy; 2025 Smart Barbershop. All rights reserved.
-      </div>
-    </div>
-  );
+    )
 }
