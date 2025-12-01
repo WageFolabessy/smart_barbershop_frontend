@@ -5,21 +5,17 @@
  * and provides type-safe access to them.
  */
 
-const requiredEnvVars = ['NEXT_PUBLIC_API_URL'] as const
-
 function validateEnv() {
     const missing: string[] = []
 
-    requiredEnvVars.forEach((varName) => {
-        if (!process.env[varName]) {
-            missing.push(varName)
-        }
-    })
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+        missing.push('NEXT_PUBLIC_API_URL')
+    }
 
     if (missing.length > 0) {
         throw new Error(
             `Missing required environment variables: ${missing.join(', ')}\n` +
-                'Please check your .env.local file or environment configuration.'
+            'Please check your .env.local file or environment configuration.'
         )
     }
 }
