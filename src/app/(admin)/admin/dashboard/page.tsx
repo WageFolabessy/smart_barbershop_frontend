@@ -718,8 +718,12 @@ export default function AdminDashboard() {
                                             return null
                                         const item = payload[0]
                                         const fill =
-                                            (item && (item.payload as any))
-                                                ?.fill ||
+                                            (
+                                                item &&
+                                                (item.payload as {
+                                                    fill?: string
+                                                })
+                                            )?.fill ||
                                             item.color ||
                                             '#fff'
                                         const name = item.name || ''
@@ -873,8 +877,12 @@ export default function AdminDashboard() {
                                             return null
                                         const item = payload[0]
                                         const fill =
-                                            (item && (item.payload as any))
-                                                ?.fill ||
+                                            (
+                                                item &&
+                                                (item.payload as {
+                                                    fill?: string
+                                                })
+                                            )?.fill ||
                                             item.color ||
                                             '#fff'
                                         const name = item.name || ''

@@ -64,7 +64,7 @@ export interface StoreTimeSlotRequest {
     is_active: boolean
 }
 
-export interface UpdateTimeSlotRequest extends StoreTimeSlotRequest {}
+export type UpdateTimeSlotRequest = StoreTimeSlotRequest
 
 export interface Booking {
     id: number
