@@ -1,4 +1,4 @@
-# O Barbershop Frontend
+# Smart Barbershop Frontend
 
 Frontend aplikasi Smart Barbershop yang dibangun dengan Next.js 14, Tailwind CSS, dan Shadcn UI.
 Aplikasi ini mendukung 3 role pengguna: Customer, Barber, dan Admin.
