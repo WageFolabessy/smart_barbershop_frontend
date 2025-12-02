@@ -75,7 +75,13 @@ Ikuti langkah-langkah ini untuk setiap perubahan kode:
     git checkout main
     git pull origin main
     ```
-2.  **Buat Branch Baru:** Sesuai aturan penamaan di poin 1.
+2.  **Setup Environment:**
+    *   Copy file `.env.example` menjadi `.env.local`.
+    *   Sesuaikan value di dalamnya dengan konfigurasi lokal Anda.
+    ```bash
+    cp .env.example .env.local
+    ```
+3.  **Buat Branch Baru:** Sesuai aturan penamaan di poin 1.
     ```bash
     git checkout -b feature/nama-fitur-anda
     ```
