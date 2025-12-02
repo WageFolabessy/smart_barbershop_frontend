@@ -15,7 +15,7 @@ function validateEnv() {
     if (missing.length > 0) {
         throw new Error(
             `Missing required environment variables: ${missing.join(', ')}\n` +
-            'Please check your .env.local file or environment configuration.'
+                'Please check your .env.local file or environment configuration.'
         )
     }
 }
