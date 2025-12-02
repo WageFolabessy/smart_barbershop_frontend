@@ -8,10 +8,16 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import Cookies from 'js-cookie'
-import { AUTH_COOKIE_NAMES, COOKIE_OPTIONS, ROUTES } from '@/lib/constants'
+import {
+    AUTH_COOKIE_NAMES,
+    COOKIE_OPTIONS,
+    COOKIE_OPTIONS_REMEMBER,
+    ROUTES,
+} from '@/lib/constants'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
     Card,
     CardContent,
@@ -35,6 +41,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 const loginSchema = z.object({
     email: z.string().email({ message: 'Email tidak valid' }),
     password: z.string().min(1, { message: 'Kata sandi diperlukan' }),
+    rememberMe: z.boolean(),
 })
 
 export default function LoginPage() {
@@ -48,6 +55,7 @@ export default function LoginPage() {
         defaultValues: {
             email: '',
             password: '',
+            rememberMe: false,
         },
     })
 
@@ -69,9 +77,12 @@ export default function LoginPage() {
                 (raw as { data?: LoginResponse }).data ?? (raw as LoginResponse)
             const { user, token } = payload
 
-            // Set cookies for middleware
-            Cookies.set(AUTH_COOKIE_NAMES.TOKEN, token, COOKIE_OPTIONS)
-            Cookies.set(AUTH_COOKIE_NAMES.USER_ROLE, user.role, COOKIE_OPTIONS)
+            // Set cookies for middleware with appropriate expiration
+            const cookieOptions = values.rememberMe
+                ? COOKIE_OPTIONS_REMEMBER
+                : COOKIE_OPTIONS
+            Cookies.set(AUTH_COOKIE_NAMES.TOKEN, token, cookieOptions)
+            Cookies.set(AUTH_COOKIE_NAMES.USER_ROLE, user.role, cookieOptions)
 
             login(user, token)
 
@@ -149,6 +160,23 @@ export default function LoginPage() {
                                         />
                                     </FormControl>
                                     <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="rememberMe"
+                            render={({ field }) => (
+                                <FormItem className="flex items-center space-y-0 space-x-2">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <FormLabel className="text-sm font-normal">
+                                        Ingat saya selama 30 hari
+                                    </FormLabel>
                                 </FormItem>
                             )}
                         />

@@ -68,6 +68,8 @@ export const metadata: Metadata = {
 }
 
 import { ErrorBoundary } from '@/components/error-boundary'
+import { AuthMessageHandler } from '@/components/auth-message-handler'
+import { Suspense } from 'react'
 
 export default function RootLayout({
     children,
@@ -80,7 +82,12 @@ export default function RootLayout({
                 className={`${geistSans.variable} ${geistMono.variable} bg-background text-foreground antialiased`}
             >
                 <ErrorBoundary>
-                    <Providers>{children}</Providers>
+                    <Providers>
+                        <Suspense fallback={null}>
+                            <AuthMessageHandler />
+                        </Suspense>
+                        {children}
+                    </Providers>
                 </ErrorBoundary>
             </body>
         </html>
