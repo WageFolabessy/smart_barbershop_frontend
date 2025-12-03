@@ -4,7 +4,7 @@ import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface LoyaltyPointsBadgeProps {
-    points: number
+    points?: number
     className?: string
     showLabel?: boolean
     size?: 'sm' | 'md' | 'lg'
@@ -22,7 +22,7 @@ interface LoyaltyPointsBadgeProps {
  * @param size - Badge size variant
  */
 export function LoyaltyPointsBadge({
-    points,
+    points = 0,
     className,
     showLabel = false,
     size = 'md'
@@ -39,6 +39,9 @@ export function LoyaltyPointsBadge({
         lg: 16
     }
 
+    // Safely handle undefined/null points
+    const safePoints = points ?? 0
+
     return (
         <div
             className={cn(
@@ -54,8 +57,8 @@ export function LoyaltyPointsBadge({
             )}
             title={
                 showLabel
-                    ? `Poin Loyalitas: ${points.toLocaleString('id-ID')}`
-                    : `${points.toLocaleString('id-ID')} poin`
+                    ? `Poin Loyalitas: ${safePoints.toLocaleString('id-ID')}`
+                    : `${safePoints.toLocaleString('id-ID')} poin`
             }
         >
             <Star
@@ -64,7 +67,7 @@ export function LoyaltyPointsBadge({
                 aria-hidden="true"
             />
             <span className="tabular-nums">
-                {points.toLocaleString('id-ID')}
+                {safePoints.toLocaleString('id-ID')}
             </span>
             {showLabel && (
                 <span className="hidden sm:inline ml-1">Poin</span>

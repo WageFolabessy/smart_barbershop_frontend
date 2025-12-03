@@ -6,7 +6,7 @@ import { CounterAnimation } from '@/components/ui/counter-animation'
 import { cn } from '@/lib/utils'
 
 interface LoyaltyPointsCardProps {
-    points: number
+    points?: number
     className?: string
     showDetails?: boolean
 }
@@ -22,12 +22,15 @@ interface LoyaltyPointsCardProps {
  * @param showDetails - Whether to show additional details (earning rate, tips)
  */
 export function LoyaltyPointsCard({
-    points,
+    points = 0,
     className,
     showDetails = true
 }: LoyaltyPointsCardProps) {
+    // Safely handle undefined/null points
+    const safePoints = points ?? 0
+    
     // Calculate equivalent spending (1 point = Rp 10,000)
-    const equivalentSpending = points * 10000
+    const equivalentSpending = safePoints * 10000
 
     return (
         <Card className={cn('overflow-hidden', className)}>
@@ -49,7 +52,7 @@ export function LoyaltyPointsCard({
                     <div className="mb-2 flex items-center justify-center gap-2">
                         <Star className="h-8 w-8 fill-primary text-primary" />
                         <CounterAnimation
-                            value={points}
+                            value={safePoints}
                             duration={1500}
                             className="text-5xl font-bold tabular-nums text-primary"
                         />
