@@ -1,10 +1,16 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Scissors } from 'lucide-react'
 
 export default function Home() {
     return (
         <div className="bg-background text-foreground relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+            {/* Theme Toggle - Top Right */}
+            <div className="absolute top-4 right-4 z-20 md:top-8 md:right-8">
+                <ThemeToggle />
+            </div>
+
             {/* Background Effects */}
             <div className="from-primary/10 via-background to-background absolute top-0 left-0 z-0 h-full w-full bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))]" />
 
@@ -15,7 +21,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                <h1 className="bg-linear-to-b from-white to-white/50 bg-clip-text text-5xl font-bold tracking-tighter text-transparent md:text-7xl">
+                <h1 className="bg-gradient-to-b from-foreground to-foreground/50 bg-clip-text text-5xl font-bold tracking-tighter text-transparent md:text-7xl">
                     Smart Barbershop
                 </h1>
 

@@ -11,6 +11,7 @@ import {
     ListChecks,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useAuthStore } from '@/store/useAuthStore'
 import api from '@/lib/axios'
 import Cookies from 'js-cookie'
@@ -97,7 +98,7 @@ export default function BarberNav() {
                         })}
                     </div>
 
-                    {/* Right: Mobile menu + user */}
+                    {/* Right: Mobile menu + user + theme toggle */}
                     <div className="flex items-center gap-2 md:gap-3">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -134,6 +135,7 @@ export default function BarberNav() {
                             <User className="h-4 w-4 shrink-0" />
                             <span className="truncate">{user?.name}</span>
                         </div>
+                        <ThemeToggle />
                         <Button
                             variant="ghost"
                             size="sm"
