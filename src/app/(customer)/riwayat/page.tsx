@@ -397,7 +397,7 @@ function BookingCard({
                                 </div>
                             </div>
                             <div className="flex w-full flex-col gap-3 md:w-56">
-                                <div className="flex flex-col pb-1">
+                                <div className="flex flex-col gap-1.5 pb-1">
                                     <span className="text-muted-foreground text-[11px] tracking-wider uppercase">
                                         Total
                                     </span>
@@ -406,6 +406,15 @@ function BookingCard({
                                             booking.pricing.final_price
                                         )}
                                     </span>
+                                    {/* Show points earned for completed bookings */}
+                                    {booking.status === 'completed' && (
+                                        <div className="flex items-center gap-1 text-xs">
+                                            <span className="text-primary">⭐</span>
+                                            <span className="text-muted-foreground">
+                                                +{Math.floor(booking.pricing.final_price / 10000)} poin diperoleh
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {canReschedule && (

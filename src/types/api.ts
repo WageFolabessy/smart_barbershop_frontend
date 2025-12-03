@@ -4,6 +4,7 @@ export interface User {
     email: string
     phone?: string
     role: 'admin' | 'barber' | 'customer'
+    loyalty_points: number
     created_at: string
     updated_at: string
 }
