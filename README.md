@@ -7,9 +7,15 @@ Aplikasi ini mendukung 3 role pengguna: Customer, Barber, dan Admin.
 
 ### 🎨 Desain & UI
 
-- **Dark Luxury Theme**: Estetika premium dengan warna hitam, emas, dan perak.
+- **Dark/Light Theme**: Dua tema premium dengan toggle otomatis
+  - 🌙 **Dark Mode**: Estetika luxury dengan obsidian black dan gold accents
+  - ☀️ **Light Mode**: Clean professional dengan warm off-white dan gold accents
+  - 🔄 **Auto-detect**: Deteksi preferensi sistem otomatis
+  - 💾 **Persistent**: Pilihan tema tersimpan otomatis
+  - ✨ **Smooth Transitions**: Animasi halus 300ms
 - **Responsif**: Tampilan optimal di desktop dan mobile.
 - **Bahasa Indonesia**: Seluruh antarmuka menggunakan Bahasa Indonesia yang profesional.
+- **Accessible**: Memenuhi standar WCAG AA untuk kontras warna.
 
 ### 👥 Role Pengguna
 
@@ -59,16 +65,31 @@ Aplikasi ini mendukung 3 role pengguna: Customer, Barber, dan Admin.
 
 - `src/app`: Halaman-halaman aplikasi (App Router).
 - `src/components`: Komponen UI (Shadcn) dan komponen khusus.
+  - `src/components/ui/theme-toggle.tsx`: Komponen toggle tema
 - `src/lib`: Utilitas (Axios, Formatters).
 - `src/store`: State management (Zustand).
 - `src/types`: Definisi tipe TypeScript.
+- `docs/`: Dokumentasi teknis
+  - `docs/THEME.md`: Dokumentasi lengkap sistem tema
+
+## Dokumentasi
+
+- **[Panduan Tema](./docs/THEME.md)**: Dokumentasi lengkap dark/light mode
+  - Cara menggunakan
+  - Panduan developer
+  - Kustomisasi warna
+  - Testing guidelines
+  - Troubleshooting
 
 ## Teknologi
 
-- **Framework**: Next.js 14
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript 5
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Shadcn UI (Radix Primitives)
 - **State Management**: Zustand & TanStack Query
+- **Theme System**: next-themes
 - **Icons**: Lucide React
 - **Forms**: React Hook Form + Zod
 - **Charts**: Recharts
+- **Date Utilities**: date-fns (ID locale)
