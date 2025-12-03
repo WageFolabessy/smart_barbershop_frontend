@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarPlus, History, Images, LogOut, Menu } from 'lucide-react'
+import { CalendarPlus, History, Images, LogOut, Menu, User as UserIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLogout } from '@/hooks/useLogout'
 import {
@@ -12,10 +12,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ClientOnly } from '@/components/common/client-only'
+import { LoyaltyPointsBadge } from '@/components/ui/loyalty-points-badge'
+import { useAuthStore } from '@/store/useAuthStore'
 
 export default function CustomerNav() {
     const pathname = usePathname()
     const { logout } = useLogout()
+    const user = useAuthStore((state) => state.user)
 
     const handleLogout = async () => {
         await logout()
@@ -35,6 +38,7 @@ export default function CustomerNav() {
             match: '/riwayat',
         },
         { href: '/galeri', label: 'Galeri', icon: Images, match: '/galeri' },
+        { href: '/profil', label: 'Profil', icon: UserIcon, match: '/profil' },
     ]
 
     const isActive = (match: string) => pathname === match
@@ -73,8 +77,16 @@ export default function CustomerNav() {
                         })}
                     </div>
 
-                    {/* Right: Mobile menu + user */}
+                    {/* Right: Loyalty Points + Mobile menu + user */}
                     <div className="ml-auto flex items-center gap-2 md:gap-3">
+                        {/* Loyalty Points Badge */}
+                        {user && (
+                            <LoyaltyPointsBadge
+                                points={user.loyalty_points}
+                                size="sm"
+                                className="hidden md:inline-flex"
+                            />
+                        )}
                         <ClientOnly>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

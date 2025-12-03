@@ -96,6 +96,7 @@ export default function BookingPage() {
                     name: b.name,
                     email: '', // Not used in UI
                     role: 'barber' as const,
+                    loyalty_points: 0, // Not applicable for barbers
                     created_at: '',
                     updated_at: '',
                 }))
@@ -518,6 +519,26 @@ export default function BookingPage() {
                                         )}
                                 </span>
                             </div>
+                            {/* Points to be earned */}
+                            {selectedService && selectedTimeSlot && (
+                                <div className="flex items-center justify-between rounded-lg bg-primary/10 p-3 text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-primary">⭐</span>
+                                        <span className="font-medium">
+                                            Poin yang Didapat
+                                        </span>
+                                    </div>
+                                    <span className="text-primary font-bold">
+                                        +
+                                        {Math.floor(
+                                            (selectedService.base_price *
+                                                selectedTimeSlot.price_multiplier) /
+                                                10000
+                                        )}{' '}
+                                        poin
+                                    </span>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
