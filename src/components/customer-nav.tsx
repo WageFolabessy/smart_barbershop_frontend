@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { CalendarPlus, History, Images, LogOut, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useLogout } from '@/hooks/useLogout'
 import {
     DropdownMenu,
@@ -73,7 +74,7 @@ export default function CustomerNav() {
                         })}
                     </div>
 
-                    {/* Right: Mobile menu + user */}
+                    {/* Right: Mobile menu + theme toggle + logout */}
                     <div className="ml-auto flex items-center gap-2 md:gap-3">
                         <ClientOnly>
                             <DropdownMenu>
@@ -111,6 +112,7 @@ export default function CustomerNav() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </ClientOnly>
+                        <ThemeToggle />
                         <Button
                             variant="ghost"
                             size="sm"

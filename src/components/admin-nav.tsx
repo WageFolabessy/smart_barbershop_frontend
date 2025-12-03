@@ -18,6 +18,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useLogout } from '@/hooks/useLogout'
 
@@ -72,7 +73,7 @@ export default function AdminNav() {
                         })}
                     </div>
 
-                    {/* Right: User + Logout + Mobile Menu */}
+                    {/* Right: User + Theme Toggle + Logout + Mobile Menu */}
                     <div className="flex items-center gap-2 md:gap-3">
                         {/* Mobile Menu Button */}
                         <DropdownMenu>
@@ -111,6 +112,7 @@ export default function AdminNav() {
                             <User className="h-4 w-4 shrink-0" />
                             <span className="truncate">{user?.name}</span>
                         </div>
+                        <ThemeToggle />
                         <Button
                             variant="ghost"
                             size="sm"
